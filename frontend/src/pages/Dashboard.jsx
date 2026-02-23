@@ -1,9 +1,11 @@
-import FinancialControl from "../components/FinancialControl";
+import CreateFinancial from "../components/CreateFinancial";
+import ViwHistoryFinancial from "../components/ViwHistoryFinancial";
 
 export default function Dashboard() {
   return (
-    <div className="bg-gray-400 min-h-screen w-full flex items-center justify-center">
-      <FinancialControl />
+    <div className="bg-gray-400 min-h-screen w-full flex flex-col gap-4 items-center justify-center">
+      <CreateFinancial />
+      <ViwHistoryFinancial />
     </div>
   );
 }

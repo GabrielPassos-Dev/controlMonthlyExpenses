@@ -8,11 +8,19 @@ export default function FinancialControl() {
           className="text-white w-20 h-8 border p-2 border-white bg-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-      <div>
-        <button className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition">
-          Adicionar salario
-        </button>
+      <button className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition w-full">
+        Adicionar salario
+      </button>
+      <div className="flex gap-4 justify-center items-center">
+        <span className="text-white">Adicione os gastos</span>
+        <input
+          type="number"
+          className="text-white w-20 h-8 border p-2 border-white bg-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
       </div>
+      <button className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition w-full">
+        Adicionar Gasto Fixo
+      </button>
     </div>
   );
 }
