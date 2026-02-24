@@ -5,7 +5,7 @@ import { NumericFormat } from "react-number-format";
 export default function FormRegister({ changeForm }) {
   const navigate = useNavigate();
   
-  const [value, setValue] = useState(0);
+  const [salary, setSalary] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +13,7 @@ export default function FormRegister({ changeForm }) {
   function sendForm(event) {
     event.preventDefault();
 
-    console.log(name, email, password, value);
+    console.log(name, email, password, salary);
 
     navigate("/dashboard");
   }
@@ -51,7 +51,7 @@ export default function FormRegister({ changeForm }) {
 
       <NumericFormat
         className="h-8 p-2 bg-white text-gray-900 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        value={value || ""}
+        value={salary || ""}
         thousandSeparator="."
         decimalSeparator=","
         prefix="R$ "
@@ -59,7 +59,7 @@ export default function FormRegister({ changeForm }) {
         fixedDecimalScale
         allowNegative={false}
         placeholder="Digite seu salario R$ 0,00"
-        onValueChange={(values) => setValue(values.floatValue ?? 0)}
+        onValueChange={(values) => setSalary(values.floatValue ?? 0)}
       />
 
       <button className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition">
