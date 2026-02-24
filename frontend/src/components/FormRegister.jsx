@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { NumericFormat } from "react-number-format";
 
-export default function FormRegister({changeForm}) {
+export default function FormRegister({ changeForm }) {
   const navigate = useNavigate();
-
+  
+  const [value, setValue] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,7 +13,7 @@ export default function FormRegister({changeForm}) {
   function sendForm(event) {
     event.preventDefault();
 
-    console.log(name, email, password);
+    console.log(name, email, password, value);
 
     navigate("/dashboard");
   }
@@ -47,11 +49,26 @@ export default function FormRegister({changeForm}) {
         className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
+      <NumericFormat
+        className="h-8 p-2 bg-white text-gray-900 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={value || ""}
+        thousandSeparator="."
+        decimalSeparator=","
+        prefix="R$ "
+        decimalScale={2}
+        fixedDecimalScale
+        allowNegative={false}
+        placeholder="Digite seu salario R$ 0,00"
+        onValueChange={(values) => setValue(values.floatValue ?? 0)}
+      />
+
       <button className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition">
         criar conta
       </button>
       <div>
-        <button onClick={changeForm} type="button">Acesse sua conta</button>
+        <button onClick={changeForm} type="button">
+          Acesse sua conta
+        </button>
       </div>
     </form>
   );
