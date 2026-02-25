@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function FormLogin({changeForm}) {
+export default function FormLogin({ onSwitchForm }) {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -18,7 +18,7 @@ export default function FormLogin({changeForm}) {
   return (
     <form
       onSubmit={sendForm}
-      className="bg-white p-8 rounded-xl shadow-md w-80 flex flex-col gap-4"
+      className="bg-white p-8 rounded-xl shadow-md w-full flex flex-col gap-4"
     >
       <h1 className="text-2xl font-bold text-center">Login</h1>
 
@@ -41,8 +41,15 @@ export default function FormLogin({changeForm}) {
       <button className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition">
         Entrar
       </button>
-      <div>
-        <button onClick={changeForm} type="button" className="text-1xl">Crie sua conta</button>
+      <div className="flex flex-row gap-1 justify-center items-center">
+        <p>Não possui cadastro?</p>
+        <button
+          onClick={onSwitchForm}
+          type="button"
+          className="text-1xl font-bold cursor-pointer underline underline-offset-2"
+        >
+          Criar conta
+        </button>
       </div>
     </form>
   );
