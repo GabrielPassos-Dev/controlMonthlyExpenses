@@ -48,7 +48,7 @@ export default function FormRegister({ onSwitchForm }) {
       <Text>Senha</Text>
       <input
         type="password"
-        placeholder="Mínimo 6 caracteres"
+        placeholder="Mínimo 8 caracteres"
         value={password}
         onChange={(event) => setPassword(event.target.value)}
         className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

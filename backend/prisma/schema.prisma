@@ -14,9 +14,35 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  name     String
-  email    String @unique
-  password String
-  salary   Float
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String @unique
+  password  String
+  salary    Float
+  panels    Panel[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Panel {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String    @db.ObjectId
+  user            User      @relation(fields: [userId], references: [id])
+  salarySnapshot  Float
+  remainingAmount Float
+  status          String    
+  month           Int
+  year            Int
+  expenses        Expense[]
+  createdAt       DateTime  @default(now())
+  finishedAt      DateTime?
+}
+
+model Expense {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  panelId   String   @db.ObjectId
+  panel     Panel    @relation(fields: [panelId], references: [id])
+  name      String
+  amount    Float
+  paid      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
