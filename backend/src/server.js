@@ -1,33 +1,42 @@
+import jwt from 'jsonwebtoken'
+import cors from 'cors'
 import bcrypt from 'bcrypt'
 import express from 'express'
 import { PrismaClient } from '@prisma/client'
+import 'dotenv/config'
 
 const prisma = new PrismaClient()
 
 const app = express()
+app.use(cors())
 app.use(express.json())
 
 app.post('/register', async (req, res) => {
     try {
         const { name, email, password, salary } = req.body
 
-        if (!name || !email || !password || !salary == null) {
+        if (!name || !email || !password || salary == null) {
             return res.status(400).json({ error: "All fields are required" })
         }
-
-        if (salary < 0) {
-            return res.status(400).json({ error: "Salary cannot be negative" })
-        }
-        const existingUser = await prisma.user.findUnique({
-            where: { email }
-        })
 
         if (password.length < 8) {
             return res.status(400).json({ error: "Password must be at least 8 characters" })
         }
 
+        const existingUser = await prisma.user.findUnique({
+            where: { email }
+        })
+
         if (existingUser) {
             return res.status(400).json({ error: "Email already registered" })
+        }
+
+        if (salary < 0) {
+            return res.status(400).json({ error: "Salary cannot be negative" })
+        }
+
+        if (!process.env.JWT_SECRET) {
+            throw new Error("JWT_SECRET not defined")
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)
@@ -40,9 +49,18 @@ app.post('/register', async (req, res) => {
                 salary
             }
         })
+
+        const token = jwt.sign(
+            { userId: user.id },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        )
         const { password: _, ...safeUser } = user
 
-        return res.status(201).json(safeUser)
+        return res.status(201).json({
+            user: safeUser,
+            token
+        })
 
     } catch (error) {
         console.error(error)
@@ -50,50 +68,95 @@ app.post('/register', async (req, res) => {
     }
 })
 
-app.get('/register', async (req, res) => {
-    let users = []
+app.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body
 
-    if (req.query) {
-        users = await prisma.user.findMany({
+        if (!email || !password) {
+            return res.status(400).json({ error: "Email and password are required" })
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { email }
+        })
+
+        if (!user) {
+            return res.status(400).json({ error: "Invalid credentials" })
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.password)
+
+        if (!passwordMatch) {
+            return res.status(400).json({ error: "Invalid credentials" })
+        }
+
+        const token = jwt.sign(
+            { userId: user.id },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        )
+
+        const { password: _, ...safeUser } = user
+
+        return res.json({
+            user: safeUser,
+            token
+        })
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ error: "Internal server error" })
+    }
+})
+
+
+app.post('/das  hboard', async (req, res) => {
+    try {
+
+        const { userId, month, year } = req.body
+
+        if (!userId || !month || !year == null) {
+            return res.status(400).json({ error: "userId, month and year are required" })
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
+        })
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" })
+
+        }
+
+        const existingPanel = await prisma.panel.findFirst({
             where: {
-                name: req.query.name,
-                email: req.query.email
+                userId,
+                month,
+                year
             }
         })
-    } else {
-        users = await prisma.user.findMany()
+
+        if (existingPanel) {
+            return res.status(400).json({ error: "Panel already exists for this month" })
+        }
+
+        const panel = await prisma.panel.create({
+            data: {
+                userId,
+                salarySnapshot: user.salary,
+                remainingAmount: user.salary,
+                status: "active",
+                month,
+                year
+            }
+        })
+
+        return res.status(201).json(panel)
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ error: "Internal server error" })
     }
-
-
-    res.status(200).json(users)
-})
-
-app.put('/register/:id', async (req, res) => {
-    const { name, email, password, salary } = req.body
-
-    await prisma.user.update({
-        where: {
-            id: req.params.id
-        },
-        data: {
-            name,
-            email,
-            password,
-            salary
-        }
-    })
-
-    res.status(201).json(req.body)
-})
-
-app.delete('/register/:id', async (req, res) => {
-    await prisma.user.delete({
-        where: {
-            id: req.params.id
-        }
-    })
-
-    res.status(200).json({ message: 'Usuario deletado com sucesso' })
 })
 
 app.listen(3000)

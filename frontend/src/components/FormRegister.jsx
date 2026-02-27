@@ -11,24 +11,49 @@ export default function FormRegister({ onSwitchForm }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  function sendForm(event) {
+  async function handleRegister(event) {
     event.preventDefault();
 
-    console.log(name, email, password, salary);
+    try {
+      const response = await fetch("http://localhost:3000/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          salary,
+        }),
+      });
 
-    navigate("/dashboard");
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        navigate("/dashboard");
+      } else {
+        alert(data.error);
+      }
+    } catch (error) {
+      console.error("Erro no register:", error);
+      alert("Erro ao conectar com o servidor");
+    }
   }
 
   return (
     <form
-      onSubmit={sendForm}
+      onSubmit={handleRegister}
       className="bg-white p-8 rounded-xl shadow-md flex flex-col gap-2"
     >
       <h1 className="text-3xl font-bold text-center mb-8">Cadastro</h1>
 
-      <Text>Nome completo</Text>
-
+      <label htmlFor="name">
+        <Text>Nome completo</Text>
+      </label>
       <input
+        id="name"
         type="text"
         placeholder="Digite seu nome completo"
         value={name}
@@ -36,8 +61,11 @@ export default function FormRegister({ onSwitchForm }) {
         className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
-      <Text>E-mail</Text>
+      <label htmlFor="email">
+        <Text>E-mail</Text>
+      </label>
       <input
+        id="email"
         type="email"
         placeholder="Ex: seuemail@gmail.com"
         value={email}
@@ -45,8 +73,11 @@ export default function FormRegister({ onSwitchForm }) {
         className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
-      <Text>Senha</Text>
+      <label htmlFor="password">
+        <Text>Senha</Text>
+      </label>
       <input
+        id="password"
         type="password"
         placeholder="Mínimo 8 caracteres"
         value={password}
@@ -54,8 +85,11 @@ export default function FormRegister({ onSwitchForm }) {
         className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
-      <Text>Salario</Text>
+      <label htmlFor="salary">
+        <Text>Salario</Text>
+      </label>
       <NumericFormat
+        id="salary"
         className="h-8 p-2 bg-white text-gray-900 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         value={salary || ""}
         thousandSeparator="."

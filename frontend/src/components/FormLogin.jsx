@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Text from "./ui/text";
 
 export default function FormLogin({ onSwitchForm }) {
   const navigate = useNavigate();
@@ -7,22 +8,44 @@ export default function FormLogin({ onSwitchForm }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  function sendForm(event) {
+  async function handleLogin(event) {
     event.preventDefault();
 
-    console.log(email, password);
+    try {
+      const response = await fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    navigate("/dashboard");
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        navigate("/dashboard");
+      } else {
+        alert(data.error);
+      }
+    } catch (error) {
+      console.error("Erro no login:", error);
+      alert("Erro ao conectar com o servidor");
+    }
   }
 
   return (
     <form
-      onSubmit={sendForm}
+      onSubmit={handleLogin}
       className="bg-white p-8 rounded-xl shadow-md w-full flex flex-col gap-4"
     >
       <h1 className="text-2xl font-bold text-center">Login</h1>
 
+      <label htmlFor="email">
+        <Text>E-mail</Text>
+      </label>
       <input
+        id="email"
         type="email"
         placeholder="Digite seu email"
         value={email}
@@ -30,7 +53,11 @@ export default function FormLogin({ onSwitchForm }) {
         className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
+      <label htmlFor="password">
+        <Text>Senha</Text>
+      </label>
       <input
+        id="password"
         type="password"
         placeholder="Digite sua senha"
         value={password}
