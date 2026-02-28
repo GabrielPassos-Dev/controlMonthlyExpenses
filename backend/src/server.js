@@ -11,6 +11,29 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
+
+function authMiddleware(req, res, next) {
+
+    const authHeader = req.headers.authorization
+
+    if (!authHeader) {
+        return res.status(401).json({ error: "Token not provided" })
+    }
+
+    const token = authHeader.split(" ")[1]
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+        req.userId = decoded.userId
+
+        next()
+
+    } catch (error) {
+        return res.status(401).json({ error: "Invalid token" })
+    }
+}
+
 app.post('/register', async (req, res) => {
     try {
         const { name, email, password, salary } = req.body
@@ -55,6 +78,7 @@ app.post('/register', async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         )
+
         const { password: _, ...safeUser } = user
 
         return res.status(201).json({
@@ -110,13 +134,14 @@ app.post('/login', async (req, res) => {
 })
 
 
-app.post('/das  hboard', async (req, res) => {
+app.post('/dashboard/panel', authMiddleware, async (req, res) => {
     try {
+        const userId = req.userId
 
-        const { userId, month, year } = req.body
+        const { month, year } = req.body
 
-        if (!userId || !month || !year == null) {
-            return res.status(400).json({ error: "userId, month and year are required" })
+        if (!month || month < 1 || month > 12 || !year) {
+            return res.status(400).json({ error: "month and year are required" })
         }
 
         const user = await prisma.user.findUnique({
@@ -125,7 +150,6 @@ app.post('/das  hboard', async (req, res) => {
 
         if (!user) {
             return res.status(404).json({ error: "User not found" })
-
         }
 
         const existingPanel = await prisma.panel.findFirst({
