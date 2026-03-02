@@ -22,6 +22,10 @@ function authMiddleware(req, res, next) {
 
     const token = authHeader.split(" ")[1]
 
+    if (!token) {
+        return res.status(401).json({ error: "Token malformed" })
+    }
+
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
@@ -133,7 +137,6 @@ app.post('/login', async (req, res) => {
     }
 })
 
-
 app.post('/dashboard/panel', authMiddleware, async (req, res) => {
     try {
         const userId = req.userId
@@ -182,5 +185,84 @@ app.post('/dashboard/panel', authMiddleware, async (req, res) => {
         return res.status(500).json({ error: "Internal server error" })
     }
 })
+
+app.get("/dashboard/panel/active", authMiddleware, async (req, res) => {
+    try {
+        const panel = await prisma.panel.findFirst({
+            where: {
+                userId: req.userId,
+                status: "active"
+            }
+        })
+
+        if (!panel) {
+            return res.status(404).json({ hasActivePanel: false })
+        }
+
+        return res.json({ hasActivePanel: true, panel })
+
+    } catch (error) {
+        return res.status(500).json({ error: "Internal server error" })
+    }
+})
+
+app.post('/financial', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.userId
+
+        const { name, amount } = req.body
+
+        if (!name || amount == null || amount <= 0) {
+            return res.status(400).json({ error: "Name is required and amount must be greater than 0" })
+        }
+
+        const panel = await prisma.panel.findFirst({
+            where: { userId, status: "active" }
+        })
+
+        if (!panel) {
+            return res.status(404).json({ error: "Active panel not found" })
+        }
+
+        const expense = await prisma.expense.create({
+            data: {
+                panelId: panel.id,
+                name,
+                amount,
+                paid: false
+            }
+        })
+
+        return res.status(201).json(expense)
+
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Internal server error" })
+    }
+})
+
+app.get("/financial", authMiddleware, async (req, res) => {
+    try {
+        const userId = req.userId;
+
+        const panel = await prisma.panel.findFirst({
+            where: { userId, status: "active" },
+        });
+
+        if (!panel) {
+            return res.status(404).json({ error: "Active panel not found" });
+        }
+
+        const expenses = await prisma.expense.findMany({
+            where: { panelId: panel.id },
+            orderBy: { createdAt: "desc" },
+        });
+
+        res.json(expenses);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 app.listen(3000)

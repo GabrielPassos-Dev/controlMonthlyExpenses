@@ -15,7 +15,9 @@ export default function Dashboard() {
     <div className="bg-gray-400 min-h-screen w-full flex flex-col gap-4 justify-center items-center px-4 overflow-x-hidden">
       <CreateFinancial />
       <ViwHistoryFinancial />
-      <Button onClick={logout}>Sair da conta</Button>
+      <Button className="w-full max-w-2xl" onClick={logout}>
+        Sair da conta
+      </Button>
     </div>
   );
 }
