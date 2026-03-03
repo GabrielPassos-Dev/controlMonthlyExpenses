@@ -16,7 +16,7 @@ export function Button({
     danger:
       "bg-red-600 text-white p-2 rounded-md hover:bg-red-700 transition text-center",
     ghost:
-      "bg-transparent text-blue-600 border-2 border-blue-600 hover:bg-blue-800 hover:text-white text-center",
+      "relative w-full py-3 px-6 rounded-2xl font-semibold text-base tracking-wide bg-gradient-to-r shadow-lg shadow-blue-500/20 transition-all duration-300 ease-in-out hover:from-blue-600 hover:to-blue-700 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95 bg-transparent text-blue-600 border-2 border-blue-600 hover:bg-blue-800 hover:text-white text-center",
   };
 
   const sizes = {
