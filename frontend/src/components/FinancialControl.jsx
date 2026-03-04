@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NumericFormat } from "react-number-format";
 
-export default function FinancialControl() {
+export default function FinancialControl({ addExpense }) {
   const [amount, setAmount] = useState(0);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,12 +21,12 @@ export default function FinancialControl() {
         }),
       });
 
-      const data = await response.json();
+      const newExpense = await response.json();
 
       if (response.ok) {
-        return true;
+        addExpense(newExpense);
       } else {
-        alert(data.error);
+        alert(newExpense.error);
         return false;
       }
     } catch (error) {
@@ -38,12 +38,10 @@ export default function FinancialControl() {
 
   async function handleSubmit() {
     setLoading(true);
-    const success = await createExpenses();
+    await createExpenses();
     setLoading(false);
-    if (success) {
-      setName("");
-      setAmount(0);
-    }
+    setName("");
+    setAmount(0);
   }
 
   return (
