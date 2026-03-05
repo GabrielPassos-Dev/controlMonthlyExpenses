@@ -6,6 +6,7 @@ import { useState } from "react";
 import Modal from "../components/Modal";
 import { NumericFormat } from "react-number-format";
 import { LiaTimesSolid } from "react-icons/lia";
+import { salaryEdit } from "../services/userService.js";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -17,31 +18,15 @@ export default function Dashboard() {
     navigate("/login");
   }
 
-  async function salaryEdit() {
+  async function handleSalaryEdit() {
     const token = localStorage.getItem("token");
-
     try {
-      const response = await fetch("http://localhost:3000/user/salary", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ salary: Number(salary) }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert("Salário atualizado com sucesso!");
-        setIsModalOpen(false);
-        setSalary(0);
-      } else {
-        alert(data.error);
-      }
+      await salaryEdit(token, salary);
+      setIsModalOpen(false);
+      setSalary(0);
     } catch (error) {
       console.error("Erro ao atualizar salário:", error);
-      alert("Erro ao conectar com o servidor");
+      alert(error.message);
     }
   }
 
@@ -73,7 +58,7 @@ export default function Dashboard() {
           />
 
           <div className="flex justify-between gap-2">
-            <Button onClick={salaryEdit}>Salvar</Button>
+            <Button onClick={handleSalaryEdit}>Salvar</Button>
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-3 right-2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition"

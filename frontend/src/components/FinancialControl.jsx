@@ -1,44 +1,26 @@
 import { useState } from "react";
 import { NumericFormat } from "react-number-format";
+import { createExpenses } from "../services/financialService";
 
 export default function FinancialControl({ addExpense }) {
   const [amount, setAmount] = useState(0);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function createExpenses() {
+  async function handleCreateExpenses() {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch("http://localhost:3000/financial", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name,
-          amount,
-        }),
-      });
-
-      const newExpense = await response.json();
-
-      if (response.ok) {
-        addExpense(newExpense);
-      } else {
-        alert(newExpense.error);
-        return false;
-      }
+      const data = await createExpenses(token, name, amount);
+      addExpense(data);
     } catch (error) {
-      console.error("Erro ao registrar:", error);
-      alert("Erro ao conectar com o servidor");
-      return false;
+      console.error("Erro ao criar nova despesa:", error);
+      alert(error.message);
     }
   }
 
   async function handleSubmit() {
     setLoading(true);
-    await createExpenses();
+    await handleCreateExpenses();
     setLoading(false);
     setName("");
     setAmount(0);

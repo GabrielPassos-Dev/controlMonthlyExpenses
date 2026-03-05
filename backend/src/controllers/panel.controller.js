@@ -49,7 +49,7 @@ export async function createPanel(req, res) {
     }
 }
 
-export async function activePanel(req, res) {
+export async function getActivePanel(req, res) {
     try {
         const panel = await prisma.panel.findFirst({
             where: {
@@ -65,6 +65,38 @@ export async function activePanel(req, res) {
         return res.json({ hasActivePanel: true, panel })
 
     } catch (error) {
+        return res.status(500).json({ error: "Internal server error" })
+    }
+}
+
+export async function updateStatusPanel(req, res) {
+    try {
+        const userId = req.userId
+
+        const existingPanel = await prisma.panel.findFirst({
+            where: {
+                userId,
+                status: "active"
+            }
+        })
+
+        if (!existingPanel) {
+            return res.status(400).json({ error: "Não existe painel financeiro ativo no momento" })
+        }
+
+        const updatePanel = await prisma.panel.update({
+            where: { id: existingPanel.id },
+            data: { status: "inactive" },
+            select: {
+                id: true,
+                status: true
+            }
+        })
+
+        return res.json(updatePanel);
+
+    } catch (error) {
+        console.error(error);
         return res.status(500).json({ error: "Internal server error" })
     }
 }

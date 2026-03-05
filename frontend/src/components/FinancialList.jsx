@@ -1,22 +1,15 @@
 import { FaTrashAlt, FaEdit } from "react-icons/fa";
+import { deletedExpense } from "../services/financialService";
 
 export default function FinancialList({ expenses, removeExpense }) {
-  async function deletedExpense(id) {
+  async function handleDeletedExpense(id) {
     const token = localStorage.getItem("token");
-
-    const response = await fetch(`http://localhost:3000/financial/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
+    try {
+      const data = await deletedExpense(token, id);
       removeExpense(id, data.deletedExpense);
-    } else {
-      alert("Erro ao deletar");
+    } catch (error) {
+      console.error("Erro ao deletar despesa:", error);
+      alert(error.message);
     }
   }
 
@@ -40,7 +33,7 @@ export default function FinancialList({ expenses, removeExpense }) {
           </button>
 
           <button
-            onClick={() => deletedExpense(expense.id)}
+            onClick={() => handleDeletedExpense(expense.id)}
             className="flex justify-center items-center"
           >
             <FaTrashAlt size={20} />

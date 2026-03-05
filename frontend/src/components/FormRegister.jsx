@@ -4,10 +4,10 @@ import { NumericFormat } from "react-number-format";
 import Text from "./ui/text";
 import { Button } from "./ui/button";
 import { Input } from "./ui/Input";
+import { registerUser } from "../services/authService";
 
 export default function FormRegister({ onSwitchForm }) {
   const navigate = useNavigate();
-
   const [salary, setSalary] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,30 +17,13 @@ export default function FormRegister({ onSwitchForm }) {
     event.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          salary,
-        }),
-      });
+      const data = await registerUser(name, email, password, salary);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        navigate("/dashboard");
-      } else {
-        alert(data.error);
-      }
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
     } catch (error) {
-      console.error("Erro no register:", error);
-      alert("Erro ao conectar com o servidor");
+      console.error("Erro no registro:", error);
+      alert(error.message);
     }
   }
 
@@ -102,8 +85,10 @@ export default function FormRegister({ onSwitchForm }) {
         />
 
         <Button className="mt-6 mb-2">criar conta</Button>
+
         <div className="flex flex-row gap-1 justify-center items-center">
           <p>Já possui cadastro?</p>
+
           <button
             onClick={onSwitchForm}
             type="button"

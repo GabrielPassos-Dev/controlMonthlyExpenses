@@ -1,38 +1,27 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
+import { checkPanel, createPanel } from "../services/panelService";
 
 export default function CreateFinancial() {
   const navigate = useNavigate();
   const [hasActivePanel, setHasActivePanel] = useState(null);
 
   useEffect(() => {
-    async function checkPanel() {
+    async function handleCheckPanel() {
       const token = localStorage.getItem("token");
       try {
-        const response = await fetch(
-          "http://localhost:3000/dashboard/panel/active",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (response.status === 404) {
-          setHasActivePanel(false);
-        } else if (response.ok) {
-          setHasActivePanel(true);
-        }
+        const data = await checkPanel(token);
+        setHasActivePanel(data.hasActivePanel);
       } catch (error) {
         console.error("Erro ao carregar painel:", error);
-        alert("Erro ao conectar com o servidor");
+        alert(error.message);
       }
     }
-    checkPanel();
+    handleCheckPanel();
   }, []);
 
-  async function createPanel() {
+  async function handleCreatePanel() {
     const token = localStorage.getItem("token");
 
     const now = new Date();
@@ -40,29 +29,11 @@ export default function CreateFinancial() {
     const year = now.getFullYear();
 
     try {
-      const response = await fetch("http://localhost:3000/dashboard/panel", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-
-        body: JSON.stringify({
-          month,
-          year,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        navigate("/financial");
-      } else {
-        alert(data.error);
-      }
+      await createPanel(token, month, year);
+      navigate("/financial");
     } catch (error) {
       console.error("Erro ao criar o Painel Financeiro:", error);
-      alert("Erro ao conectar com o servidor");
+      alert(error.message);
     }
   }
 
@@ -86,7 +57,7 @@ export default function CreateFinancial() {
           Ver Painel
         </Button>
       ) : (
-        <Button onClick={createPanel}>Criar Novo</Button>
+        <Button onClick={handleCreatePanel}>Criar Novo</Button>
       )}
     </div>
   );

@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import Text from "./ui/text";
 import { Button } from "./ui/button";
 import { Input } from "./ui/Input";
+import { loginUser } from "../services/authService.js";
 
 export default function FormLogin({ onSwitchForm }) {
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -14,25 +14,13 @@ export default function FormLogin({ onSwitchForm }) {
     event.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await loginUser(email, password);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        navigate("/dashboard");
-      } else {
-        alert(data.error);
-      }
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
     } catch (error) {
       console.error("Erro no login:", error);
-      alert("Erro ao conectar com o servidor");
+      alert(error.message);
     }
   }
 
@@ -53,6 +41,7 @@ export default function FormLogin({ onSwitchForm }) {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
+
         <label htmlFor="password">
           <Text>Senha</Text>
         </label>
@@ -63,9 +52,12 @@ export default function FormLogin({ onSwitchForm }) {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
+
         <Button className="mt-6 mb-2">Entrar</Button>
+
         <div className="flex flex-row gap-1 justify-center items-center">
           <p>Não possui cadastro?</p>
+
           <button
             onClick={onSwitchForm}
             type="button"

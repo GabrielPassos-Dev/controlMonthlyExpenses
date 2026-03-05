@@ -17,6 +17,4 @@ app.use(financialRoutes);
 app.use(panelRoutes);
 app.use(userRoutes);
 
-console.log("Server file loaded");
-
 export default app;

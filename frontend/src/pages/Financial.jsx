@@ -2,39 +2,29 @@ import { useState } from "react";
 import FinancialControl from "../components/FinancialControl";
 import FinancialList from "../components/FinancialList";
 import { useEffect } from "react";
+import { Button } from "../components/ui/button";
+import { fetchExpenses } from "../services/financialService.js";
 
 export default function Financial() {
   const [expenses, setExpenses] = useState([]);
   const [salarySnapshot, setSalarySnapshot] = useState(0);
   const [remainingAmount, setRemainingAmount] = useState(0);
 
-  async function fetchExpenses() {
+  async function handleFetchExpenses() {
     const token = localStorage.getItem("token");
-
     try {
-      const response = await fetch("http://localhost:3000/financial", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setExpenses(data.expenses);
-        setSalarySnapshot(data.panel.salarySnapshot);
-        setRemainingAmount(data.panel.remainingAmount);
-      } else {
-        alert(data.error || "Erro ao carregar despesas");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao conectar com o servidor");
+      const data = await fetchExpenses(token);
+      setExpenses(data.expenses);
+      setSalarySnapshot(data.panel.salarySnapshot);
+      setRemainingAmount(data.panel.remainingAmount);
+    } catch (error) {
+      console.error("Erro ao carregar despesas: ", error);
+      alert(error.message);
     }
   }
 
   useEffect(() => {
-    fetchExpenses();
+    handleFetchExpenses();
   }, []);
 
   function addExpense(newExpense) {
@@ -57,6 +47,7 @@ export default function Financial() {
       {salarySnapshot !== remainingAmount && (
         <p className="bg-white p-1 rounded-md w-60 text-center font-bold">{`Saldo restante: R$ ${remainingAmount.toFixed(2).replace(".", ",")}`}</p>
       )}
+      <Button> Finalizar Painel</Button>
     </div>
   );
 }

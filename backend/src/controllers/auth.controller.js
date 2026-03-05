@@ -11,7 +11,7 @@ export async function registerUser(req, res) {
         }
 
         if (password.length < 8) {
-            return res.status(400).json({ error: "Password must be at least 8 characters" })
+            return res.status(400).json({ error: "Senha inválida, é necessário que tenha mais de 8 caracteres" })
         }
 
         const existingUser = await prisma.user.findUnique({
@@ -19,11 +19,11 @@ export async function registerUser(req, res) {
         })
 
         if (existingUser) {
-            return res.status(400).json({ error: "Email already registered" })
+            return res.status(400).json({ error: "Email já registrado" })
         }
 
         if (salary < 0) {
-            return res.status(400).json({ error: "Salary cannot be negative" })
+            return res.status(400).json({ error: "Salário não pode ser negativo" })
         }
 
         if (!process.env.JWT_SECRET) {
