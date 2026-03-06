@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import FinancialControl from "../components/FinancialControl";
 import FinancialList from "../components/FinancialList";
-import { useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { fetchExpenses } from "../services/financialService.js";
 

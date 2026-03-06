@@ -13,15 +13,25 @@ datasource db {
   url = env("DATABASE_URL")
 }
 
+enum ExpenseType {
+  FIXED
+  VARIABLE
+}
+
+enum PanelStatus {
+  ACTIVE
+  FINISHED
+}
+
 model User {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  email     String @unique
-  password  String
-  salary    Float
-  panels    Panel[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  email           String    @unique
+  password        String
+  salary          Float
+  panels          Panel[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 model Panel {
   id              String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -29,7 +39,7 @@ model Panel {
   user            User      @relation(fields: [userId], references: [id])
   salarySnapshot  Float
   remainingAmount Float
-  status          String    
+  status          PanelStatus  
   month           Int
   year            Int
   expenses        Expense[]
@@ -40,11 +50,14 @@ model Panel {
 }
 
 model Expense {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  panelId   String   @db.ObjectId
-  panel     Panel    @relation(fields: [panelId], references: [id])
-  name      String
-  amount    Float
-  paid      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  panelId         String    @db.ObjectId
+  panel           Panel     @relation(fields: [panelId], references: [id])
+  name            String
+  amount          Float
+  spentAmount     Float     @default(0) 
+  type            ExpenseType
+  paid            Boolean   @default(false)
+  createdAt       DateTime  @default(now())
 }
+

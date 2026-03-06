@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import CreateFinancial from "../components/CreateFinancial";
-import ViwHistoryFinancial from "../components/ViwHistoryFinancial";
-import { Button } from "../components/ui/button";
 import { useState } from "react";
-import Modal from "../components/Modal";
 import { NumericFormat } from "react-number-format";
 import { LiaTimesSolid } from "react-icons/lia";
+import CreateFinancial from "../components/CreateFinancial";
+import ViwHistoryFinancial from "../components/ViwHistoryFinancial";
+import Modal from "../components/Modal";
+import { Button } from "../components/ui/button";
 import { salaryEdit } from "../services/userService.js";
 
 export default function Dashboard() {

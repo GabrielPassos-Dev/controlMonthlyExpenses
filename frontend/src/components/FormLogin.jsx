@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import Text from "./ui/text";
 import { Button } from "./ui/button";
 import { Input } from "./ui/Input";
@@ -17,6 +17,10 @@ export default function FormLogin({ onSwitchForm }) {
       const data = await loginUser(email, password);
 
       localStorage.setItem("token", data.token);
+      // localStorage.setItem("user", JSON.stringify(data.user));
+
+      // setUser(data.user);
+
       navigate("/dashboard");
     } catch (error) {
       console.error("Erro no login:", error);
