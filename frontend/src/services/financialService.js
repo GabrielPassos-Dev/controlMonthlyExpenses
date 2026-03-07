@@ -31,7 +31,7 @@ export async function deletedExpense(token, id) {
     return data;
 }
 
-export async function createExpenses(token, name, amount) {
+export async function createExpense(token, name, amount, type) {
     const response = await fetch("http://localhost:3000/financial", {
         method: "POST",
         headers: {
@@ -41,6 +41,7 @@ export async function createExpenses(token, name, amount) {
         body: JSON.stringify({
             name,
             amount,
+            type
         }),
     });
 

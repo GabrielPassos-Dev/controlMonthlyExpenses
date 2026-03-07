@@ -1,3 +1,4 @@
+import { PanelStatus } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 
 export async function createPanel(req, res) {
@@ -35,7 +36,7 @@ export async function createPanel(req, res) {
                 userId,
                 salarySnapshot: user.salary,
                 remainingAmount: user.salary,
-                status: "active",
+                status: PanelStatus.ACTIVE,
                 month,
                 year
             }
@@ -54,7 +55,7 @@ export async function getActivePanel(req, res) {
         const panel = await prisma.panel.findFirst({
             where: {
                 userId: req.userId,
-                status: "active"
+                status: PanelStatus.ACTIVE
             }
         })
 
@@ -76,7 +77,7 @@ export async function updateStatusPanel(req, res) {
         const existingPanel = await prisma.panel.findFirst({
             where: {
                 userId,
-                status: "active"
+                status: PanelStatus.ACTIVE
             }
         })
 
@@ -86,7 +87,7 @@ export async function updateStatusPanel(req, res) {
 
         const updatePanel = await prisma.panel.update({
             where: { id: existingPanel.id },
-            data: { status: "inactive" },
+            data: { status: PanelStatus.FINISHED },
             select: {
                 id: true,
                 status: true

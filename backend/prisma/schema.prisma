@@ -45,8 +45,7 @@ model Panel {
   expenses        Expense[]
   createdAt       DateTime  @default(now())
   finishedAt      DateTime?
-
-  //@@unique([userId, month, year])
+  @@unique([userId, month, year])
 }
 
 model Expense {

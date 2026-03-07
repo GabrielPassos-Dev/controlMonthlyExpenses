@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { NumericFormat } from "react-number-format";
-import { createExpenses } from "../services/financialService";
+import { createExpense } from "../services/financialService.js";
 
 export default function FinancialControl({ addExpense }) {
   const [amount, setAmount] = useState(0);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleCreateExpenses() {
+  async function handleCreateExpenses(type) {
     const token = localStorage.getItem("token");
     try {
-      const data = await createExpenses(token, name, amount);
+      const data = await createExpense(token, name, amount, type);
       addExpense(data);
     } catch (error) {
       console.error("Erro ao criar nova despesa:", error);
@@ -18,9 +18,9 @@ export default function FinancialControl({ addExpense }) {
     }
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(type) {
     setLoading(true);
-    await handleCreateExpenses();
+    await handleCreateExpenses(type);
     setLoading(false);
     setName("");
     setAmount(0);
@@ -53,10 +53,16 @@ export default function FinancialControl({ addExpense }) {
         </span>
       </div>
       <button
-        onClick={handleSubmit}
+        onClick={() => handleSubmit("FIXED")}
         className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition w-full"
       >
-        {loading ? "Enviando..." : "Adicionar Gasto"}
+        {loading ? "Enviando..." : "Adicionar Gasto Fixo"}
+      </button>
+      <button
+        onClick={() => handleSubmit("VARIABLE")}
+        className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition w-full"
+      >
+        {loading ? "Enviando..." : "Adicionar Gasto Variavel"}
       </button>
     </div>
   );
