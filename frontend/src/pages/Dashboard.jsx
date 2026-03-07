@@ -31,43 +31,49 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="bg-gray-400 min-h-screen w-full flex flex-col gap-4 justify-center items-center px-4 overflow-x-hidden">
-      <CreateFinancial />
-      <ViwHistoryFinancial />
-      <Button className="w-full max-w-2xl" onClick={logout}>
-        Sair da conta
-      </Button>
-      <Button onClick={() => setIsModalOpen(true)}>Editar Salário</Button>
+    <main className="bg-gray-400 min-h-screen w-full flex items-center justify-center p-4">
+      <section className="w-full max-w-2xl flex flex-col gap-4 justify-center items-center">
+        <CreateFinancial />
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <div className="flex flex-col gap-4">
-          <h2 className="text-xl font-bold text-center">Editar Salário</h2>
+        <ViwHistoryFinancial />
 
-          <NumericFormat
-            id="salary"
-            className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-300 text-gray-700 placeholder-gray-400 outline-none transition-all duration-300 focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 shadow-sm hover:border-gray-300"
-            value={salary || ""}
-            thousandSeparator="."
-            decimalSeparator=","
-            prefix="R$ "
-            decimalScale={2}
-            fixedDecimalScale
-            allowNegative={false}
-            placeholder="Digite seu salario R$ 0,00"
-            onValueChange={(values) => setSalary(values.floatValue ?? 0)}
-          />
+        <div className="flex flex-col md:flex-row gap-4 w-full">
+          <Button onClick={logout}>Sair da conta</Button>
 
-          <div className="flex justify-between gap-2">
-            <Button onClick={handleSalaryEdit}>Salvar</Button>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-3 right-2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
-            >
-              <LiaTimesSolid />
-            </button>
-          </div>
+          <Button onClick={() => setIsModalOpen(true)}>Editar Salário</Button>
         </div>
-      </Modal>
-    </div>
+
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <div className="flex flex-col gap-4">
+            <h2 className="text-xl font-bold text-center">Editar Salário</h2>
+
+            <NumericFormat
+              id="salary"
+              className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-300 text-gray-700 placeholder-gray-400 outline-none transition-all duration-300 focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 shadow-sm hover:border-gray-300"
+              value={salary || ""}
+              thousandSeparator="."
+              decimalSeparator=","
+              prefix="R$ "
+              decimalScale={2}
+              fixedDecimalScale
+              allowNegative={false}
+              placeholder="Digite seu salario R$ 0,00"
+              onValueChange={(values) => setSalary(values.floatValue ?? 0)}
+            />
+
+            <div className="flex justify-between gap-2">
+              <Button onClick={handleSalaryEdit}>Salvar</Button>
+
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-3 right-2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
+              >
+                <LiaTimesSolid />
+              </button>
+            </div>
+          </div>
+        </Modal>
+      </section>
+    </main>
   );
 }

@@ -28,7 +28,7 @@ export async function createPanel(req, res) {
         })
 
         if (existingPanel) {
-            return res.status(400).json({ error: "Panel already exists for this month" })
+            return res.status(400).json({ error: `Já existe um painel para ${month}/${year}` })
         }
 
         const panel = await prisma.panel.create({
@@ -66,6 +66,30 @@ export async function getActivePanel(req, res) {
         return res.json({ hasActivePanel: true, panel })
 
     } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Internal server error" })
+    }
+}
+
+export async function getFinishedPanel(req, res) {
+    try {
+        const panel = await prisma.panel.findMany({
+            where: {
+                userId: req.userId,
+                status: PanelStatus.FINISHED
+            },
+            orderBy: { createdAt: "desc" },
+            include: { expenses: true }
+        })
+
+        if (panel.length === 0) {
+            return res.status(404).json({ hasFinishedPanel: false, message: "No finished panels found" })
+        }
+
+        return res.json({ hasFinishedPanel: true, panel })
+
+    } catch (error) {
+        console.error(error);
         return res.status(500).json({ error: "Internal server error" })
     }
 }

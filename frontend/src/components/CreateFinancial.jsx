@@ -6,6 +6,7 @@ import { checkPanel, createPanel } from "../services/panelService";
 export default function CreateFinancial() {
   const navigate = useNavigate();
   const [hasActivePanel, setHasActivePanel] = useState(null);
+  const [msgError, setMsgError] = useState("");
 
   useEffect(() => {
     async function handleCheckPanel() {
@@ -33,7 +34,7 @@ export default function CreateFinancial() {
       navigate("/financial");
     } catch (error) {
       console.error("Erro ao criar o Painel Financeiro:", error);
-      alert(error.message);
+      setMsgError(error.message);
     }
   }
 
@@ -46,7 +47,7 @@ export default function CreateFinancial() {
   }
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-md w-80 flex flex-col gap-4">
+    <div className="bg-gray-100 p-8 rounded-xl shadow-md w-full flex flex-col gap-4">
       <h1 className="text-[24px] font-bold text-center">Painel Financeiro</h1>
       {hasActivePanel ? (
         <Button
@@ -58,6 +59,11 @@ export default function CreateFinancial() {
         </Button>
       ) : (
         <Button onClick={handleCreatePanel}>Criar Novo</Button>
+      )}
+      {msgError && (
+        <p className="bg-red-200 text-sm px-3 py-1 rounded-lg w-full border-2 border-red-400">
+          {msgError}
+        </p>
       )}
     </div>
   );

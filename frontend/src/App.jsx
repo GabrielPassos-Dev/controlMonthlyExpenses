@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Financial from "./pages/Financial";
 import PrivateRoute from "./routes/PrivateRoute";
 import PublicRoute from "./routes/PublicRoute";
+import History from "./pages/History";
 
 function App() {
   return (
@@ -31,6 +32,14 @@ function App() {
           element={
             <PrivateRoute>
               <Financial />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <PrivateRoute>
+              <History />
             </PrivateRoute>
           }
         />

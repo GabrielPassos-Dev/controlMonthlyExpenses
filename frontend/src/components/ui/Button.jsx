@@ -11,7 +11,7 @@ export function Button({
 }) {
   const variants = {
     primary:
-      "relative w-full py-3 px-6 rounded-2xl font-semibold text-white text-base tracking-wide bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/20 transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95",
+      "text-center relative w-full py-3 px-6 rounded-2xl font-semibold text-white text-base tracking-wide bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/20 transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95",
 
     danger:
       "bg-red-600 text-white p-2 rounded-md hover:bg-red-700 transition text-center",

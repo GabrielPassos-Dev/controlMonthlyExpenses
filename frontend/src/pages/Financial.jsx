@@ -4,8 +4,11 @@ import FinancialControl from "../components/FinancialControl";
 import FinancialList from "../components/FinancialList";
 import { Button } from "../components/ui/button";
 import { fetchExpenses } from "../services/financialService.js";
+import { updateStatusPanel } from "../services/panelService.js";
+import { useNavigate } from "react-router-dom";
 
 export default function Financial() {
+  const navigate = useNavigate();
   const [expenses, setExpenses] = useState([]);
   const [salarySnapshot, setSalarySnapshot] = useState(0);
   const [remainingAmount, setRemainingAmount] = useState(0);
@@ -37,17 +40,41 @@ export default function Financial() {
     setRemainingAmount((prev) => prev + expense.amount);
   }
 
+  async function handleStatusPanel() {
+    const token = localStorage.getItem("token");
+    try {
+      await updateStatusPanel(token);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Erro ao encerrar panel: ", error);
+      alert(error.message);
+    }
+  }
+
   return (
-    <div className="bg-gray-400 min-h-screen w-full flex flex-col gap-4 items-center justify-center">
-      <p className="bg-white p-1 rounded-md w-60 text-center font-bold">
-        {`Salário: R$ ${salarySnapshot.toFixed(2).replace(".", ",")}`}
-      </p>
-      <FinancialControl addExpense={addExpense} />
-      <FinancialList expenses={expenses} removeExpense={removeExpense} />
-      {salarySnapshot !== remainingAmount && (
-        <p className="bg-white p-1 rounded-md w-60 text-center font-bold">{`Saldo restante: R$ ${remainingAmount.toFixed(2).replace(".", ",")}`}</p>
-      )}
-      <Button> Finalizar Painel</Button>
-    </div>
+    <main className="bg-gray-600 min-h-screen w-full flex items-center justify-center p-4">
+      <section className="w-full max-w-2xl flex flex-col gap-4 justify-center items-center">
+        <div className="flex flex-row gap-4 mb-3 md:mb-5">
+          <p className="text-white text-2xl md:text-5xl text-center font-medium">
+            Salário:
+          </p>
+          <p className="text-green-300 text-2xl md:text-5xl text-center font-bold">
+            {`  R$ ${salarySnapshot.toFixed(2).replace(".", ",")}`}
+          </p>
+        </div>
+
+        <FinancialControl addExpense={addExpense} />
+
+        <FinancialList expenses={expenses} removeExpense={removeExpense} />
+
+        {salarySnapshot !== remainingAmount && (
+          <p className="bg-white p-1 rounded-xl w-full text-center font-bold">{`Saldo restante: R$ ${remainingAmount.toFixed(2).replace(".", ",")}`}</p>
+        )}
+        <div className="flex flex-col md:flex-row gap-4 w-full">
+          <Button to={"/dashboard"}>Voltar</Button>
+          <Button onClick={handleStatusPanel}> Finalizar Painel</Button>
+        </div>
+      </section>
+    </main>
   );
 }
