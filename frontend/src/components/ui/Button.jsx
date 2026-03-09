@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 export function Button({
   children,
   onClick,
+  disabled,
   to,
   className = "",
   variant = "primary",
@@ -29,14 +30,19 @@ export function Button({
 
   if (to) {
     return (
-      <Link to={to} className={`${classes}`} {...props}>
+      <Link to={to} disabled={disabled} className={`${classes}`} {...props}>
         {children}
       </Link>
     );
   }
 
   return (
-    <button onClick={onClick} className={`${classes}`} {...props}>
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${classes}`}
+      {...props}
+    >
       {children}
     </button>
   );

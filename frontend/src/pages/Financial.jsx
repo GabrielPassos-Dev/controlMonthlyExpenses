@@ -3,7 +3,10 @@ import { useEffect } from "react";
 import FinancialControl from "../components/FinancialControl";
 import FinancialList from "../components/FinancialList";
 import { Button } from "../components/ui/button";
-import { fetchExpenses } from "../services/financialService.js";
+import {
+  fetchExpenses,
+  updateExpensePaid,
+} from "../services/financialService.js";
 import { updateStatusPanel } from "../services/panelService.js";
 import { useNavigate } from "react-router-dom";
 
@@ -51,6 +54,25 @@ export default function Financial() {
     }
   }
 
+  async function handleTogglePaid(expense) {
+    const token = localStorage.getItem("token");
+
+    try {
+      const updatedPaid = !expense.paid;
+
+      await updateExpensePaid(expense.id, updatedPaid, token);
+
+      setExpenses((prev) =>
+        prev.map((e) =>
+          e.id === expense.id ? { ...e, paid: updatedPaid } : e,
+        ),
+      );
+    } catch (error) {
+      console.error("Erro ao marcar despesa:", error);
+      alert(error.message || "Erro ao marcar despesa");
+    }
+  }
+
   return (
     <main className="bg-gray-600 min-h-screen w-full flex items-center justify-center p-4">
       <section className="w-full max-w-2xl flex flex-col gap-4 justify-center items-center">
@@ -65,7 +87,11 @@ export default function Financial() {
 
         <FinancialControl addExpense={addExpense} />
 
-        <FinancialList expenses={expenses} removeExpense={removeExpense} />
+        <FinancialList
+          expenses={expenses}
+          removeExpense={removeExpense}
+          handleTogglePaid={handleTogglePaid}
+        />
 
         {salarySnapshot !== remainingAmount && (
           <p className="bg-white p-1 rounded-xl w-full text-center font-bold">{`Saldo restante: R$ ${remainingAmount.toFixed(2).replace(".", ",")}`}</p>

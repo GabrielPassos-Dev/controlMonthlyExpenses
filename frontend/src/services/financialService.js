@@ -53,3 +53,25 @@ export async function createExpense(token, name, amount, type) {
 
     return newExpense;
 }
+
+export async function updateExpensePaid(id, paid, token) {
+    const response = await fetch(
+        `http://localhost:3000/expenses/${id}/paid`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ paid })
+        }
+    );
+
+    const data = response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error);
+    }
+
+    return data;
+}

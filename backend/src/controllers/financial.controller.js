@@ -1,4 +1,4 @@
-import { PanelStatus } from "@prisma/client";
+import { ExpenseType, PanelStatus } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 
 export async function createExpense(req, res) {
@@ -179,12 +179,11 @@ export async function payExpense(req, res) {
 }
 
 export async function spendExpense(req, res) {
+    const userId = req.userId
+    const expenseId = req.params.id
+    const { amount } = req.body
+
     try {
-
-        const userId = req.userId
-        const expenseId = req.params.id
-        const { amount } = req.body
-
         if (!amount || amount <= 0) {
             return res.status(400).json({ error: "Amount must be greater than 0" })
         }
@@ -221,6 +220,37 @@ export async function spendExpense(req, res) {
 
         return res.json(updatedExpense)
 
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ error: "Internal server error" })
+    }
+}
+
+export async function updateExpensePaid(req, res) {
+    const { id } = req.params;
+    const { paid } = req.body;
+
+    try {
+        const expense = await prisma.expense.findUnique({
+            where: { id: id },
+        });
+
+        if (!expense) {
+            return res.status(404).json({ error: "Expense not found" })
+        }
+
+        if (expense.type === ExpenseType.VARIABLE) {
+            return res.status(404).json({ error: "Apenas despesas fixas podem ser marcadas" })
+        }
+
+        await prisma.expense.update({
+            where: { id: id },
+            data: {
+                paid: paid
+            }
+        });
+
+        res.json(expense);
     } catch (error) {
         console.error(error)
         return res.status(500).json({ error: "Internal server error" })
