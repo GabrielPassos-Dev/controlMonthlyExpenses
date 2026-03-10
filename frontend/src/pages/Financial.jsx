@@ -43,7 +43,7 @@ export default function Financial() {
     setRemainingAmount((prev) => prev + expense.amount);
   }
 
-  async function handleStatusPanel() {
+  async function handleToggleStatus() {
     const token = localStorage.getItem("token");
     try {
       await updateStatusPanel(token);
@@ -63,14 +63,22 @@ export default function Financial() {
       await updateExpensePaid(expense.id, updatedPaid, token);
 
       setExpenses((prev) =>
-        prev.map((e) =>
-          e.id === expense.id ? { ...e, paid: updatedPaid } : e,
+        prev.map((exp) =>
+          exp.id === expense.id ? { ...exp, paid: updatedPaid } : exp,
         ),
       );
     } catch (error) {
       console.error("Erro ao marcar despesa:", error);
       alert(error.message || "Erro ao marcar despesa");
     }
+  }
+
+  function updateExpenseSpent(id, newSpent) {
+    setExpenses((prev) =>
+      prev.map((exp) =>
+        exp.id === id ? { ...exp, spentAmount: newSpent } : exp,
+      ),
+    );
   }
 
   return (
@@ -91,6 +99,7 @@ export default function Financial() {
           expenses={expenses}
           removeExpense={removeExpense}
           handleTogglePaid={handleTogglePaid}
+          updateExpenseSpent={updateExpenseSpent}
         />
 
         {salarySnapshot !== remainingAmount && (
@@ -98,7 +107,7 @@ export default function Financial() {
         )}
         <div className="flex flex-col md:flex-row gap-4 w-full">
           <Button to={"/dashboard"}>Voltar</Button>
-          <Button onClick={handleStatusPanel}> Finalizar Painel</Button>
+          <Button onClick={handleToggleStatus}> Finalizar Painel</Button>
         </div>
       </section>
     </main>

@@ -75,3 +75,25 @@ export async function updateExpensePaid(id, paid, token) {
 
     return data;
 }
+
+export async function updateSpentAmount(id, spentAmount, token) {
+    const response = await fetch(
+        `http://localhost:3000/expenses/${id}/spentamount`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ spentAmount })
+        }
+    );
+
+    const data = response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error);
+    }
+
+    return data;
+}

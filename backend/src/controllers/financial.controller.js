@@ -250,7 +250,46 @@ export async function updateExpensePaid(req, res) {
             }
         });
 
-        res.json(expense);
+        return res.json(expense);
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ error: "Internal server error" })
+    }
+}
+
+export async function updateSpentAmount(req, res) {
+    const { id } = req.params;
+    const { spentAmount } = req.body;
+
+    try {
+
+        if (!spentAmount || spentAmount === 0) {
+            return res.status(404).json({ error: "Expense not found" })
+        }
+
+        const expense = await prisma.expense.findUnique({
+            where: { id: id },
+        });
+
+        if (!expense) {
+            return res.status(404).json({ error: "Expense not found" })
+        }
+
+        if (expense.type === ExpenseType.FIXED) {
+            return res.status(404).json({ error: "Apenas despesas variaveis podem ser alteradas" })
+        }
+
+        const updatedExpense = await prisma.expense.update({
+            where: { id: id },
+            data: {
+
+                spentAmount: {
+                    increment: spentAmount
+                }
+            }
+        });
+
+        return res.status(200).json(updatedExpense);
     } catch (error) {
         console.error(error)
         return res.status(500).json({ error: "Internal server error" })
