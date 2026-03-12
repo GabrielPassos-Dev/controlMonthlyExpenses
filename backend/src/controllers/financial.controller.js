@@ -74,11 +74,11 @@ export async function getFinancial(req, res) {
 
 export async function deleteExpense(req, res) {
     try {
-        const expenseId = req.params.id
+        const { id } = req.params
         const userId = req.userId
 
         const expense = await prisma.expense.findUnique({
-            where: { id: expenseId },
+            where: { id: id },
             include: { panel: true }
         })
 
@@ -91,7 +91,7 @@ export async function deleteExpense(req, res) {
         }
 
         await prisma.expense.delete({
-            where: { id: expenseId }
+            where: { id: id }
         })
 
         await prisma.panel.update({
@@ -109,6 +109,59 @@ export async function deleteExpense(req, res) {
         console.error(error)
         return res.status(500).json({ error: "Internal server error" })
     }
+}
+
+export async function updateExpense(req, res) {
+    try {
+        const { id } = req.params
+        const userId = req.userId
+        const { name, amount } = req.body
+
+        const expense = await prisma.expense.findUnique({
+            where: { id: id },
+            include: { panel: true }
+        })
+
+        if (!expense) {
+            return res.status(404).json({ error: "Expense not found" })
+        }
+
+        if (expense.panel.userId !== userId) {
+            return res.status(403).json({ error: "Not authorized" })
+        }
+
+        if (expense.paid === true) {
+            return res.status(403).json({ error: "Não é possivel editar despesa paga" })
+        }
+
+        const newExpense = await prisma.expense.update({
+            where: { id, },
+            data: {
+                name,
+                amount,
+            },
+            select: {
+                name: true,
+                amount: true
+            }
+        })
+
+        await prisma.panel.update({
+            where: { id: expense.panelId },
+            data: {
+                remainingAmount: {
+                    increment: expense.amount
+                }
+            }
+        })
+
+        return res.status(200).json(newExpense)
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ error: "Internal server error" })
+    }
+
 }
 
 export async function getDailyBudget(req, res) {

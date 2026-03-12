@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useEffect } from "react";
 import FinancialControl from "../components/FinancialControl";
 import FinancialList from "../components/FinancialList";
-import { Button } from "../components/ui/button";
+import { Button } from "../components/ui/Button";
 import {
   fetchExpenses,
+  updateExpense,
   updateExpensePaid,
 } from "../services/financialService.js";
 import { updateStatusPanel } from "../services/panelService.js";
@@ -73,6 +74,22 @@ export default function Financial() {
     }
   }
 
+  async function handleUpdateExpense(id, name, amount) {
+    const token = localStorage.getItem("token");
+    try {
+      await updateExpense(token, id, name, amount);
+
+      setExpenses((prevExpenses) =>
+        prevExpenses.map((expense) =>
+          expense.id === id ? { ...expense, name, amount } : expense,
+        ),
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar despesa:", error);
+      alert(error.message);
+    }
+  }
+
   function updateExpenseSpent(id, newSpent) {
     setExpenses((prev) =>
       prev.map((exp) =>
@@ -100,6 +117,7 @@ export default function Financial() {
           removeExpense={removeExpense}
           handleTogglePaid={handleTogglePaid}
           updateExpenseSpent={updateExpenseSpent}
+          handleUpdateExpense={handleUpdateExpense}
         />
 
         {salarySnapshot !== remainingAmount && (

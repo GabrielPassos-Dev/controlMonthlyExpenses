@@ -5,7 +5,7 @@ import { LiaTimesSolid } from "react-icons/lia";
 import CreateFinancial from "../components/CreateFinancial";
 import ViwHistoryFinancial from "../components/ViwHistoryFinancial";
 import Modal from "../components/Modal";
-import { Button } from "../components/ui/button";
+import { Button } from "../components/ui/Button";
 import { salaryEdit } from "../services/userService.js";
 
 export default function Dashboard() {

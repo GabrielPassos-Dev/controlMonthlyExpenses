@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Button } from "./ui/button";
+import { Button } from "./ui/Button";
 import { checkPanel, createPanel } from "../services/panelService";
 
 export default function CreateFinancial() {

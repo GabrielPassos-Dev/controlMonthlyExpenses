@@ -14,12 +14,34 @@ export async function fetchExpenses(token) {
     return data;
 }
 
-export async function deletedExpense(token, id) {
+export async function deleteExpense(token, id) {
     const response = await fetch(`http://localhost:3000/financial/${id}`, {
         method: "DELETE",
         headers: {
             Authorization: `Bearer ${token}`,
         },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error);
+    }
+
+    return data;
+}
+
+export async function updateExpense(token, id, name, amount) {
+    const response = await fetch(`http://localhost:3000/financial/${id}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+            name,
+            amount,
+        }),
     });
 
     const data = await response.json();
