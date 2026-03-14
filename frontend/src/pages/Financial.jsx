@@ -16,6 +16,7 @@ export default function Financial() {
   const [expenses, setExpenses] = useState([]);
   const [salarySnapshot, setSalarySnapshot] = useState(0);
   const [remainingAmount, setRemainingAmount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleFetchExpenses() {
     const token = localStorage.getItem("token");
@@ -47,11 +48,14 @@ export default function Financial() {
   async function handleToggleStatus() {
     const token = localStorage.getItem("token");
     try {
+      setIsLoading(true);
       await updateStatusPanel(token);
       navigate("/dashboard");
     } catch (error) {
       console.error("Erro ao encerrar panel: ", error);
       alert(error.message);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -74,14 +78,16 @@ export default function Financial() {
     }
   }
 
-  async function handleUpdateExpense(id, name, amount) {
+  async function handleUpdateExpense(id, expenseData) {
     const token = localStorage.getItem("token");
     try {
-      await updateExpense(token, id, name, amount);
+      const data = await updateExpense(token, id, expenseData);
+
+      setRemainingAmount(data.panel.remainingAmount);
 
       setExpenses((prevExpenses) =>
         prevExpenses.map((expense) =>
-          expense.id === id ? { ...expense, name, amount } : expense,
+          expense.id === id ? { ...expense, ...expenseData } : expense,
         ),
       );
     } catch (error) {
@@ -123,9 +129,12 @@ export default function Financial() {
         {salarySnapshot !== remainingAmount && (
           <p className="bg-white p-1 rounded-xl w-full text-center font-bold">{`Saldo restante: R$ ${remainingAmount.toFixed(2).replace(".", ",")}`}</p>
         )}
+
         <div className="flex flex-col md:flex-row gap-4 w-full">
           <Button to={"/dashboard"}>Voltar</Button>
-          <Button onClick={handleToggleStatus}> Finalizar Painel</Button>
+          <Button onClick={handleToggleStatus} disabled={isLoading}>
+            {isLoading ? "Finalizando..." : "Finalizar"}
+          </Button>
         </div>
       </section>
     </main>

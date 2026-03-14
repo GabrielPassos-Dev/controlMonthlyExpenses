@@ -54,7 +54,7 @@ export default function FinancialList({
   }
 
   return (
-    <div className="flex flex-col gap-3  max-w-2xl">
+    <div className="flex flex-col gap-4  max-w-2xl">
       {expenses.length === 0 && (
         <p className="text-white">Nenhuma despesa cadastrada.</p>
       )}
@@ -83,6 +83,7 @@ export default function FinancialList({
             setSpentValues={setSpentValues}
             handleUpdateSpAm={handleUpdateSpAm}
             handleDeletedExpense={handleDeletedExpense}
+            handleUpdateExpense={handleUpdateExpense}
           />
         </>
       )}

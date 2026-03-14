@@ -1,5 +1,6 @@
 import { ExpenseType, PanelStatus } from "@prisma/client";
 import prisma from "../lib/prisma.js";
+import { updateExpenseSchema } from "../schemas/expenseSchema.js";
 
 export async function createExpense(req, res) {
     try {
@@ -113,9 +114,18 @@ export async function deleteExpense(req, res) {
 
 export async function updateExpense(req, res) {
     try {
+        const parsed = updateExpenseSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.status(400).json({
+                error: "Invalid data",
+                details: parsed.error.errors
+            });
+        }
+
         const { id } = req.params
         const userId = req.userId
-        const { name, amount } = req.body
+        const { name, amount, spentAmount } = parsed.data;
 
         const expense = await prisma.expense.findUnique({
             where: { id: id },
@@ -134,26 +144,37 @@ export async function updateExpense(req, res) {
             return res.status(403).json({ error: "Não é possivel editar despesa paga" })
         }
 
+        const data = {};
+
+        if (name !== undefined) data.name = name;
+        if (amount !== undefined) data.amount = amount;
+        if (spentAmount !== undefined) data.spentAmount = spentAmount;
+
+
+        const difference = amount !== undefined ? expense.amount - amount : 0;
+
+        if (difference !== 0) {
+            await prisma.panel.update({
+                where: { id: expense.panelId },
+                data: { remainingAmount: { increment: difference } }
+            });
+        }
+
         const newExpense = await prisma.expense.update({
-            where: { id, },
-            data: {
-                name,
-                amount,
-            },
+            where: { id },
+            data: data,
             select: {
                 name: true,
-                amount: true
-            }
-        })
-
-        await prisma.panel.update({
-            where: { id: expense.panelId },
-            data: {
-                remainingAmount: {
-                    increment: expense.amount
+                amount: true,
+                spentAmount: true,
+                panel: {
+                    select: {
+                        remainingAmount: true
+                    }
                 }
             }
-        })
+        });
+
 
         return res.status(200).json(newExpense)
 

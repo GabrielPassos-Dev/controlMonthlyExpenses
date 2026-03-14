@@ -31,17 +31,14 @@ export async function deleteExpense(token, id) {
     return data;
 }
 
-export async function updateExpense(token, id, name, amount) {
+export async function updateExpense(token, id, expenseData) {
     const response = await fetch(`http://localhost:3000/financial/${id}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-            name,
-            amount,
-        }),
+        body: JSON.stringify(expenseData),
     });
 
     const data = await response.json();

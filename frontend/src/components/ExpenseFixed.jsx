@@ -15,21 +15,37 @@ export default function ExpenseFixed({
   const [editingExpenseId, setEditingExpenseId] = useState(null);
   const [newValue, setNewValue] = useState({});
   const [newName, setNewName] = useState({});
-  console.log(newName);
-  console.log(newValue);
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleSubmitSave(expense) {
+    try {
+      setIsLoading(true);
+      await handleUpdateExpense(expense.id, {
+        name: newName[expense.id] ?? expense.name,
+        amount: newValue[expense.id] ?? expense.amount,
+      });
+
+      setEditingExpenseId(null);
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      alert(error.message || "Erro ao salvar");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <>
       {fixedExpenses.map((expense) => (
         <div key={expense.id} className="flex flex-row gap-4">
-          <div className="bg-slate-700 p-2 rounded-md flex gap-4 sm:gap-14 justify-between items-center w-full border">
+          <div className="bg-slate-700 p-2 rounded-md flex gap-2 sm:gap-10 justify-between items-center w-full sm:w-2xl border">
             <span className="text-white">{expense.name}</span>
 
             <span className="text-green-400">
               R$ {expense.amount.toFixed(2).replace(".", ",")}
             </span>
 
-            <span className="hidden md:block text-white">
+            <span className="hidden sm:block text-white">
               {expense.paid ? (
                 <p className="text-green-500">PAGO</p>
               ) : (
@@ -46,7 +62,7 @@ export default function ExpenseFixed({
           </div>
           {editingExpenseId === expense.id && (
             <Modal
-              isOpen={editingExpenseId}
+              isOpen={editingExpenseId === expense.id}
               onClose={() => setEditingExpenseId(null)}
             >
               <div className="flex flex-col gap-4">
@@ -89,16 +105,10 @@ export default function ExpenseFixed({
 
                 <div className="flex justify-between gap-2">
                   <Button
-                    onClick={async () => {
-                      await handleUpdateExpense(
-                        expense.id,
-                        newName[expense.id] ?? expense.name,
-                        newValue[expense.id] ?? expense.amount,
-                      );
-                      setEditingExpenseId(null);
-                    }}
+                    onClick={() => handleSubmitSave(expense)}
+                    disabled={isLoading}
                   >
-                    Salvar
+                    {isLoading ? "Salvando..." : "Salvar"}
                   </Button>
 
                   <button
@@ -120,7 +130,6 @@ export default function ExpenseFixed({
           >
             <FaEdit />
           </Button>
-
           <Button
             onClick={() => handleDeletedExpense(expense.id)}
             variant="smallDanger"
