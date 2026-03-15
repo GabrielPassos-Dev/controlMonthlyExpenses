@@ -3,14 +3,16 @@ export default function Modal({ isOpen, onClose, children }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 flex justify-center items-center z-50"
+      className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-in fade-in duration-300"
       onClick={onClose}
     >
       <div
-        className="bg-white p-6 rounded-xl shadow-lg w-80 relative"
+        className="bg-slate-900 border border-slate-800 p-1 rounded-3xl shadow-2xl w-full max-w-sm relative overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {children}
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );

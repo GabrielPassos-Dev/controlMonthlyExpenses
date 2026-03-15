@@ -26,45 +26,66 @@ export default function FormLogin({ onSwitchForm }) {
   }
 
   return (
-    <div className="bg-gray-100 p-8 rounded-xl shadow-md w-full flex flex-col gap-8">
-      <header>
-        <h1 className="text-2xl font-bold text-center">Login</h1>
+    <div className="bg-slate-900/60 backdrop-blur-md p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-md border border-slate-800/50 flex flex-col gap-8 relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+
+      <header className="space-y-2 text-center">
+        <h1 className="text-3xl font-black text-white tracking-tight">
+          Bem-vindo <span className="text-indigo-500">de volta</span>
+        </h1>
+        <p className="text-slate-500 text-xs uppercase font-bold tracking-[0.2em]">
+          Acesse sua conta financeira
+        </p>
       </header>
 
-      <form onSubmit={handleLogin} className="flex flex-col gap-2">
-        <label htmlFor="email">
-          <Text>E-mail</Text>
-        </label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="Digite seu email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
+      <form onSubmit={handleLogin} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-1.5 group">
+          <label
+            htmlFor="email"
+            className="text-[10px] uppercase font-bold text-slate-500 ml-1 tracking-widest group-focus-within:text-indigo-400 transition-colors"
+          >
+            E-mail
+          </label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="exemplo@email.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+        </div>
 
-        <label htmlFor="password">
-          <Text>Senha</Text>
-        </label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="Digite sua senha"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
+        <div className="flex flex-col gap-1.5 group">
+          <label
+            htmlFor="password"
+            className="text-[10px] uppercase font-bold text-slate-500 ml-1 tracking-widest group-focus-within:text-indigo-400 transition-colors"
+          >
+            Senha
+          </label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </div>
 
-        <Button className="mt-6 mb-2">Entrar</Button>
+        <Button
+          variant="primary"
+          className="mt-4 py-4 text-lg shadow-indigo-600/20 active:scale-95 font-bold"
+        >
+          Entrar na Conta
+        </Button>
 
-        <div className="flex flex-row gap-1 justify-center items-center">
-          <p>Não possui cadastro?</p>
-
+        <div className="flex flex-col items-center gap-2 mt-4">
+          <p className="text-slate-400 text-sm">Não possui cadastro?</p>
           <button
             onClick={onSwitchForm}
             type="button"
-            className="text-1xl font-bold cursor-pointer underline underline-offset-2"
+            className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors underline underline-offset-4 decoration-indigo-500/30"
           >
-            Criar conta
+            Criar uma nova conta
           </button>
         </div>
       </form>

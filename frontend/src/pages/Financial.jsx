@@ -105,35 +105,74 @@ export default function Financial() {
   }
 
   return (
-    <main className="bg-gray-600 min-h-screen w-full flex items-center justify-center p-4">
-      <section className="w-full max-w-2xl flex flex-col gap-4 justify-center items-center">
-        <div className="flex flex-row gap-4 mb-3 md:mb-5">
-          <p className="text-white text-2xl md:text-5xl text-center font-medium">
-            Salário:
-          </p>
-          <p className="text-green-300 text-2xl md:text-5xl text-center font-bold">
-            {`  R$ ${salarySnapshot.toFixed(2).replace(".", ",")}`}
-          </p>
+    <main className="bg-slate-950 min-h-screen w-full flex flex-col items-center justify-start md:justify-center p-4 py-10 md:py-20 overflow-x-hidden">
+      <section className="w-full max-w-2xl flex flex-col gap-6 items-center">
+        <div className="flex flex-col items-center gap-1 mb-4">
+          <span className="text-slate-500 uppercase text-xs font-bold tracking-widest">
+            Sua Renda Atual
+          </span>
+
+          <div className="flex flex-row items-baseline gap-2">
+            <p className="text-white text-3xl md:text-6xl font-light">R$</p>
+            <p className="text-emerald-400 text-4xl md:text-7xl font-bold tracking-tighter">
+              {salarySnapshot.toFixed(2).replace(".", ",")}
+            </p>
+          </div>
+
+          <div className="h-1.5 w-24 bg-emerald-500/20 rounded-full mt-2 overflow-hidden">
+            <div className="h-full bg-emerald-500 w-full animate-pulse" />
+          </div>
         </div>
 
-        <FinancialControl addExpense={addExpense} />
+        <div className="w-full bg-slate-900/50 p-1 rounded-2xl border border-slate-800 shadow-2xl">
+          <FinancialControl addExpense={addExpense} />
+        </div>
 
-        <FinancialList
-          expenses={expenses}
-          removeExpense={removeExpense}
-          handleTogglePaid={handleTogglePaid}
-          updateExpenseSpent={updateExpenseSpent}
-          handleUpdateExpense={handleUpdateExpense}
-        />
+        <div className="w-full">
+          <FinancialList
+            expenses={expenses}
+            removeExpense={removeExpense}
+            handleTogglePaid={handleTogglePaid}
+            updateExpenseSpent={updateExpenseSpent}
+            handleUpdateExpense={handleUpdateExpense}
+          />
+        </div>
 
         {salarySnapshot !== remainingAmount && (
-          <p className="bg-white p-1 rounded-xl w-full text-center font-bold">{`Saldo restante: R$ ${remainingAmount.toFixed(2).replace(".", ",")}`}</p>
+          <div className="w-full bg-slate-800/40 backdrop-blur-md border border-slate-700/50 p-4 rounded-2xl flex justify-between items-center shadow-lg">
+            <span className="text-slate-400 font-medium">
+              Saldo disponível:
+            </span>
+
+            <span
+              className={`text-xl font-mono font-bold ${remainingAmount >= 0 ? "text-indigo-400" : "text-red-400"}`}
+            >
+              {`R$ ${remainingAmount.toFixed(2).replace(".", ",")}`}
+            </span>
+          </div>
         )}
 
-        <div className="flex flex-col md:flex-row gap-4 w-full">
-          <Button to={"/dashboard"}>Voltar</Button>
-          <Button onClick={handleToggleStatus} disabled={isLoading}>
-            {isLoading ? "Finalizando..." : "Finalizar"}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-4">
+          <Button
+            to={"/dashboard"}
+            className="bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300 py-4"
+          >
+            Voltar
+          </Button>
+
+          <Button
+            onClick={handleToggleStatus}
+            disabled={isLoading}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white py-4 shadow-[0_0_20px_rgba(79,70,229,0.3)] disabled:opacity-50"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Finalizando...
+              </span>
+            ) : (
+              "Finalizar Mês"
+            )}
           </Button>
         </div>
       </section>

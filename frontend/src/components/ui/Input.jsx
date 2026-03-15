@@ -1,14 +1,14 @@
 export function Input({
-  children,
   onChange,
   className = "",
   id,
   type,
   placeholder,
   value,
+  ...props
 }) {
   const classBase =
-    " w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-300 text-gray-700 placeholder-gray-400 outline-none transition-all duration-300 focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 shadow-sm hover:border-gray-300";
+    "w-full px-5 py-3.5 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-100 placeholder-slate-500 outline-none transition-all duration-300 shadow-inner hover:border-slate-600 focus:bg-slate-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10";
 
   return (
     <input
@@ -18,8 +18,7 @@ export function Input({
       value={value}
       onChange={onChange}
       className={`${classBase} ${className}`}
-    >
-      {children}
-    </input>
+      {...props}
+    />
   );
 }

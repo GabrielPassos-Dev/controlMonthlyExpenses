@@ -10,34 +10,38 @@ export function Button({
   size = "md",
   ...props
 }) {
+  const baseStyles =
+    "text-center flex items-center justify-center gap-2 font-bold tracking-wide transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100";
+
   const variants = {
     primary:
-      "text-center relative w-full py-3 px-6 rounded-2xl font-semibold text-white text-base tracking-wide bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/20 transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95",
+      "bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-900/20 hover:bg-indigo-500 hover:shadow-indigo-500/20 border border-indigo-400/20",
+
+    secondary:
+      "bg-slate-800 text-slate-200 rounded-xl border border-slate-700 hover:bg-slate-700 hover:text-white shadow-md",
 
     smallBlue:
-      "text-center p-3 rounded-2xl font-semibold text-white text-base tracking-wide bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/20 transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95",
-
-    smallDanger:
-      "text-center p-3 rounded-2xl font-semibold text-white text-base tracking-wide bg-gradient-to-r from-red-600 to-red-700 shadow-lg shadow-red-500/20 transition-all duration-300 ease-in-out hover:from-red-700 hover:to-red-800 hover:shadow-xl hover:shadow-red-500/30 active:scale-95",
+      "bg-indigo-600/90 text-white rounded-lg text-sm hover:bg-indigo-500 shadow-md",
 
     danger:
-      "bg-red-600 text-white p-2 rounded-md hover:bg-red-700 transition text-center",
+      "bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl hover:bg-red-500 hover:text-white shadow-sm",
 
     ghost:
-      "relative w-full py-3 px-6 rounded-2xl font-semibold text-base tracking-wide bg-gradient-to-r shadow-lg shadow-blue-500/20 transition-all duration-300 ease-in-out hover:from-blue-600 hover:to-blue-700 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95 bg-transparent text-blue-600 border-2 border-blue-600 hover:bg-blue-800 hover:text-white text-center",
+      "bg-transparent text-indigo-400 border-2 border-indigo-500/30 rounded-xl hover:bg-indigo-500/10 hover:border-indigo-500",
   };
 
   const sizes = {
-    sm: "text-sm",
-    md: "text-md",
-    lg: "px-8 py-3 text-lg",
+    sm: "px-3 py-1.5 text-xs",
+    md: "px-6 py-3 text-base",
+    lg: "px-8 py-4 text-lg",
   };
 
-  const classes = `${variants[variant]} ${sizes[size]} ${className}`;
+  const widthClass = className.includes("w-") ? "" : "w-full";
+  const classes = `${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${className}`;
 
   if (to) {
     return (
-      <Link to={to} disabled={disabled} className={`${classes}`} {...props}>
+      <Link to={to} className={classes} {...props}>
         {children}
       </Link>
     );
@@ -47,7 +51,7 @@ export function Button({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`${classes}`}
+      className={classes}
       {...props}
     >
       {children}

@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { finishedPanel } from "../services/panelService";
+import HistoryList from "../components/HistoryList";
+import { Button } from "../components/ui/Button";
+import { IoIosArrowBack } from "react-icons/io";
 
 export default function History() {
   const [panel, setPanel] = useState([]);
@@ -22,39 +25,30 @@ export default function History() {
   }, []);
 
   return (
-    <div className="bg-gray-400 min-h-screen w-full flex flex-col gap-4 justify-center items-center px-4 overflow-x-hidden">
-      <div className="flex flex-col gap-4  max-w-2xl">
-        {panel.length === 0 && (
-          <p className="text-white">Nenhum panel no historico.</p>
-        )}
-        {panel.map((cPanel) => (
-          <section key={cPanel.id} className="flex flex-col gap-0">
-            <div className="bg-slate-700 p-2 rounded-md flex gap-12 justify-between items-center">
-              <span className="text-white">
-                {`Painel ${cPanel.month}/${cPanel.year}`}
-              </span>
-              <span className="text-gray-300 flex flex-row">
-                {`Salário: R$ ${cPanel.salarySnapshot.toFixed(2).replace(".", ",")}`}
-              </span>
-              <span className="text-gray-300 flex flex-row">
-                {`Restante: R$ ${cPanel.remainingAmount.toFixed(2).replace(".", ",")} `}
-              </span>
-            </div>
-            <div>
-              {cPanel.expenses.map((cExpense) => (
-                <section key={cExpense.id}>
-                  <div className="bg-slate-600 p-2 rounded-md flex gap-12 justify-between items-center">
-                    <span>{cExpense.name}</span>
-                    <span className="text-green-400">
-                      R$ {cExpense.amount.toFixed(2).replace(".", ",")}
-                    </span>
-                  </div>
-                </section>
-              ))}
-            </div>
-          </section>
-        ))}
+    <div className="bg-slate-950 min-h-screen w-full flex flex-col items-center px-4 py-12 overflow-x-hidden">
+      <header className="w-full max-w-2xl mb-8 flex flex-col gap-2">
+        <h1 className="text-3xl font-bold text-white tracking-tight">
+          Histórico <span className="text-indigo-500">Financeiro</span>
+        </h1>
+        <p className="text-slate-400 text-sm">
+          Visualize e gerencie seus painéis de meses anteriores.
+        </p>
+        <div className="h-1 w-20 bg-indigo-500 rounded-full mt-2" />
+      </header>
+
+      <div className="w-full max-w-2xl flex-1">
+        <HistoryList panel={panel} />
       </div>
+
+      <footer className="w-full max-w-2xl mt-12 pt-6 border-t border-slate-900 flex justify-center">
+        <Button
+          className="w-full max-w-xs flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white transition-all shadow-lg border border-slate-700"
+          to="/Dashboard"
+        >
+          <IoIosArrowBack size={18} />
+          Voltar ao Dashboard
+        </Button>
+      </footer>
     </div>
   );
 }
