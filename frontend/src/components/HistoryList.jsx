@@ -10,6 +10,13 @@ export default function HistoryList({ panel }) {
     setListExpense((prev) => (prev === id ? null : id));
   };
 
+  const predictedValue = (panel, expenses) => {
+    return (
+      panel.salarySnapshot -
+      expenses.reduce((acc, expense) => acc + (expense.amount || 0), 0)
+    );
+  };
+
   if (!panel || panel.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-slate-700 rounded-xl mt-10">
@@ -37,32 +44,53 @@ export default function HistoryList({ panel }) {
             </h1>
           </div>
 
-          <div className="bg-slate-800 p-4 rounded-xl flex justify-between items-center shadow-lg border-l-4 border-indigo-500 hover:bg-slate-750 transition-all">
-            <div className="flex gap-4 sm:gap-8 items-center">
+          <div className="bg-slate-800 p-4 md:p-5 rounded-xl flex justify-between items-center shadow-lg border-l-4 border-indigo-500 hover:bg-slate-750 transition-all">
+            <div className="grid grid-cols-2 md:flex md:flex-row gap-x-6 gap-y-3 md:gap-8 items-center flex-1">
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
                   Renda
                 </span>
-                <span className="text-slate-200 font-mono text-sm md:text-base">
+                <span className="text-slate-200 font-mono text-sm md:text-base whitespace-nowrap">
                   R$ {cPanel.salarySnapshot.toFixed(2).replace(".", ",")}
                 </span>
               </div>
-              <div className="h-8 w-[1px] bg-slate-700"></div>
+              <div className="hidden md:block h-8 w-[1px] bg-slate-700"></div>
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
                   Saldo Restante
                 </span>
                 <span
-                  className={`font-mono font-bold text-sm md:text-base ${cPanel.remainingAmount >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                  className={`font-mono font-bold text-sm md:text-base whitespace-nowrap ${
+                    cPanel.remainingAmount >= 0
+                      ? "text-emerald-400"
+                      : "text-red-400"
+                  }`}
                 >
                   R$ {cPanel.remainingAmount.toFixed(2).replace(".", ",")}
+                </span>
+              </div>
+              <div className="flex flex-col col-span-2 md:col-auto border-t border-slate-700/50 pt-2 md:pt-0 md:border-0">
+                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                  Saldo Previsto (Final do Mês)
+                </span>
+                <span
+                  className={`font-mono font-bold text-sm md:text-base whitespace-nowrap ${
+                    cPanel.remainingAmount >= 0
+                      ? "text-indigo-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  R${" "}
+                  {predictedValue(cPanel, cPanel.expenses)
+                    .toFixed(2)
+                    .replace(".", ",")}
                 </span>
               </div>
             </div>
 
             <button
               onClick={() => displayList(cPanel.id)}
-              className="p-2 hover:bg-slate-700 rounded-full text-indigo-400 transition-transform active:scale-90"
+              className="p-2 ml-2 hover:bg-slate-700 rounded-full text-indigo-400 transition-transform active:scale-90 shrink-0"
             >
               {listExpense === cPanel.id ? (
                 <IoMdClose size={24} />

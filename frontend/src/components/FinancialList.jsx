@@ -9,6 +9,7 @@ export default function FinancialList({
   handleTogglePaid,
   updateExpenseSpent,
   handleUpdateExpense,
+  setRemainingAmount,
 }) {
   const [spentValues, setSpentValues] = useState({});
 
@@ -42,6 +43,8 @@ export default function FinancialList({
       const data = await updateSpentAmount(id, value, token);
 
       updateExpenseSpent(id, data.spentAmount);
+
+      setRemainingAmount((prev) => prev - value);
 
       setSpentValues((prev) => ({
         ...prev,

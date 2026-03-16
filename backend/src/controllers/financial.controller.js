@@ -32,14 +32,16 @@ export async function createExpense(req, res) {
             }
         })
 
-        await prisma.panel.update({
-            where: { id: panel.id },
-            data: {
-                remainingAmount: {
-                    decrement: Number(amount)
-                }
-            }
-        })
+        // if (type === ExpenseType.FIXED) {
+        //     await prisma.panel.update({
+        //         where: { id: panel.id },
+        //         data: {
+        //             remainingAmount: {
+        //                 decrement: Number(amount)
+        //             }
+        //         }
+        //     })
+        // }
 
         return res.status(201).json(expense)
 
@@ -95,14 +97,24 @@ export async function deleteExpense(req, res) {
             where: { id: id }
         })
 
-        await prisma.panel.update({
-            where: { id: expense.panelId },
-            data: {
-                remainingAmount: {
-                    increment: expense.amount
+        let amountToRestore = 0;
+
+        if (expense.type === ExpenseType.FIXED && expense.paid === true) {
+            amountToRestore = Number(expense.amount);
+        } else if (expense.type === ExpenseType.VARIABLE) {
+            amountToRestore = Number(expense.spentAmount || 0);
+        }
+
+        if (amountToRestore > 0) {
+            await prisma.panel.update({
+                where: { id: expense.panelId },
+                data: {
+                    remainingAmount: {
+                        increment: amountToRestore
+                    }
                 }
-            }
-        })
+            });
+        }
 
         return res.json({ deletedExpense: expense })
 
@@ -150,14 +162,26 @@ export async function updateExpense(req, res) {
         if (amount !== undefined) data.amount = amount;
         if (spentAmount !== undefined) data.spentAmount = spentAmount;
 
+        if (expense.type === ExpenseType.FIXED) {
+            const difference = amount !== undefined ? expense.amount - amount : 0;
 
-        const difference = amount !== undefined ? expense.amount - amount : 0;
+            if (difference !== 0) {
+                await prisma.panel.update({
+                    where: { id: expense.panelId },
+                    data: { remainingAmount: { increment: difference } }
+                });
+            }
+        } else if (expense.type === ExpenseType.VARIABLE) {
+            const difference = spentAmount !== undefined ? expense.spentAmount - spentAmount : 0;
 
-        if (difference !== 0) {
-            await prisma.panel.update({
-                where: { id: expense.panelId },
-                data: { remainingAmount: { increment: difference } }
-            });
+            if (difference !== 0) {
+                await prisma.panel.update({
+                    where: { id: expense.panelId },
+                    data: { remainingAmount: { increment: difference } }
+                });
+            }
+        } else {
+            return res.status(404).json({ error: "Despesa invalida" })
         }
 
         const newExpense = await prisma.expense.update({
@@ -185,124 +209,10 @@ export async function updateExpense(req, res) {
 
 }
 
-export async function getDailyBudget(req, res) {
-    try {
-
-        const userId = req.userId
-
-        const panel = await prisma.panel.findFirst({
-            where: {
-                userId,
-                status: PanelStatus.ACTIVE
-            }
-        })
-
-        if (!panel) {
-            return res.status(404).json({ error: "Active panel not found" })
-        }
-
-        const dailyBudget = panel.remainingAmount / 30
-
-        return res.json({
-            remainingAmount: panel.remainingAmount,
-            dailyBudget
-        })
-
-    } catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: "Internal server error" })
-    }
-}
-
-export async function payExpense(req, res) {
-    try {
-
-        const userId = req.userId
-        const expenseId = req.params.id
-
-        const expense = await prisma.expense.findUnique({
-            where: { id: expenseId },
-            include: { panel: true }
-        })
-
-        if (!expense) {
-            return res.status(404).json({ error: "Expense not found" })
-        }
-
-        if (expense.panel.userId !== userId) {
-            return res.status(403).json({ error: "Not authorized" })
-        }
-
-        if (expense.type !== "FIXED") {
-            return res.status(400).json({ error: "Only fixed expenses can be marked as paid" })
-        }
-
-        const updatedExpense = await prisma.expense.update({
-            where: { id: expenseId },
-            data: {
-                paid: true
-            }
-        })
-
-        return res.json(updatedExpense)
-
-    } catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: "Internal server error" })
-    }
-}
-
-export async function spendExpense(req, res) {
-    const userId = req.userId
-    const expenseId = req.params.id
-    const { amount } = req.body
-
-    try {
-        if (!amount || amount <= 0) {
-            return res.status(400).json({ error: "Amount must be greater than 0" })
-        }
-
-        const expense = await prisma.expense.findUnique({
-            where: { id: expenseId },
-            include: { panel: true }
-        })
-
-        if (!expense) {
-            return res.status(404).json({ error: "Expense not found" })
-        }
-
-        if (expense.panel.userId !== userId) {
-            return res.status(403).json({ error: "Not authorized" })
-        }
-
-        if (expense.type !== "VARIABLE") {
-            return res.status(400).json({ error: "Only variable expenses allow partial spending" })
-        }
-
-        if (amount > expense.amount) {
-            return res.status(400).json({ error: "Amount exceeds available expense value" })
-        }
-
-        const updatedExpense = await prisma.expense.update({
-            where: { id: expenseId },
-            data: {
-                amount: {
-                    decrement: amount
-                }
-            }
-        })
-
-        return res.json(updatedExpense)
-
-    } catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: "Internal server error" })
-    }
-}
-
 export async function updateExpensePaid(req, res) {
     const { id } = req.params;
     const { paid } = req.body;
+    const userId = req.userId
 
     try {
         const expense = await prisma.expense.findUnique({
@@ -317,14 +227,29 @@ export async function updateExpensePaid(req, res) {
             return res.status(404).json({ error: "Apenas despesas fixas podem ser marcadas" })
         }
 
-        await prisma.expense.update({
+        const panel = await prisma.panel.findFirst({
+            where: { userId, status: PanelStatus.ACTIVE }
+        })
+
+        if (!panel) {
+            return res.status(404).json({ error: "Active panel not found" })
+        }
+
+        const updatedExpense = await prisma.expense.update({
             where: { id: id },
+            data: { paid: paid }
+        });
+
+        await prisma.panel.update({
+            where: { id: panel.id },
             data: {
-                paid: paid
+                remainingAmount: {
+                    [paid ? 'decrement' : 'increment']: Number(expense.amount)
+                }
             }
         });
 
-        return res.json(expense);
+        return res.json(updatedExpense);
     } catch (error) {
         console.error(error)
         return res.status(500).json({ error: "Internal server error" })
@@ -332,10 +257,18 @@ export async function updateExpensePaid(req, res) {
 }
 
 export async function updateSpentAmount(req, res) {
+    const userId = req.userId
     const { id } = req.params;
     const { spentAmount } = req.body;
 
     try {
+        const panel = await prisma.panel.findFirst({
+            where: { userId, status: PanelStatus.ACTIVE }
+        })
+
+        if (!panel) {
+            return res.status(404).json({ error: "Active panel not found" })
+        }
 
         if (!spentAmount || spentAmount === 0) {
             return res.status(404).json({ error: "Expense not found" })
@@ -362,6 +295,15 @@ export async function updateSpentAmount(req, res) {
                 }
             }
         });
+
+        await prisma.panel.update({
+            where: { id: panel.id },
+            data: {
+                remainingAmount: {
+                    decrement: Number(spentAmount)
+                }
+            }
+        })
 
         return res.status(200).json(updatedExpense);
     } catch (error) {

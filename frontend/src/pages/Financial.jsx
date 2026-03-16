@@ -18,6 +18,10 @@ export default function Financial() {
   const [remainingAmount, setRemainingAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
+  const predictedRemainingAmount =
+    salarySnapshot -
+    expenses.reduce((acc, expense) => acc + (expense.amount || 0), 0);
+
   async function handleFetchExpenses() {
     const token = localStorage.getItem("token");
     try {
@@ -37,12 +41,15 @@ export default function Financial() {
 
   function addExpense(newExpense) {
     setExpenses((prev) => [newExpense, ...prev]);
-    setRemainingAmount((prev) => prev - newExpense.amount);
   }
 
   function removeExpense(id, expense) {
     setExpenses((prev) => prev.filter((exp) => exp.id !== id));
-    setRemainingAmount((prev) => prev + expense.amount);
+    if (expense.type === "FIXED" && expense.paid === true) {
+      setRemainingAmount((prev) => prev + expense.amount);
+    } else if (expense.type === "VARIABLE") {
+      setRemainingAmount((prev) => prev + expense.spentAmount);
+    }
   }
 
   async function handleToggleStatus() {
@@ -64,7 +71,6 @@ export default function Financial() {
 
     try {
       const updatedPaid = !expense.paid;
-
       await updateExpensePaid(expense.id, updatedPaid, token);
 
       setExpenses((prev) =>
@@ -72,6 +78,11 @@ export default function Financial() {
           exp.id === expense.id ? { ...exp, paid: updatedPaid } : exp,
         ),
       );
+
+      setRemainingAmount((prev) => {
+        const amountToAdjust = expense.amount || 0;
+        return updatedPaid ? prev - amountToAdjust : prev + amountToAdjust;
+      });
     } catch (error) {
       console.error("Erro ao marcar despesa:", error);
       alert(error.message || "Erro ao marcar despesa");
@@ -135,22 +146,48 @@ export default function Financial() {
             handleTogglePaid={handleTogglePaid}
             updateExpenseSpent={updateExpenseSpent}
             handleUpdateExpense={handleUpdateExpense}
+            setRemainingAmount={setRemainingAmount}
           />
         </div>
 
-        {salarySnapshot !== remainingAmount && (
-          <div className="w-full bg-slate-800/40 backdrop-blur-md border border-slate-700/50 p-4 rounded-2xl flex justify-between items-center shadow-lg">
-            <span className="text-slate-400 font-medium">
-              Saldo disponível:
-            </span>
-
-            <span
-              className={`text-xl font-mono font-bold ${remainingAmount >= 0 ? "text-indigo-400" : "text-red-400"}`}
-            >
-              {`R$ ${remainingAmount.toFixed(2).replace(".", ",")}`}
-            </span>
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+          {salarySnapshot !== remainingAmount && (
+            <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800 p-5 rounded-2xl flex flex-col gap-1 shadow-xl relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/50" />
+              <span className="text-slate-500 uppercase text-[10px] font-bold tracking-widest">
+                Saldo Disponível
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-slate-400 text-sm font-mono">R$</span>
+                <span
+                  className={`text-2xl font-mono font-bold ${remainingAmount >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                >
+                  {remainingAmount.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            </div>
+          )}
+          {predictedRemainingAmount && (
+            <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800 p-5 rounded-2xl flex flex-col gap-1 shadow-xl relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500/50" />
+              <span className="text-slate-500 uppercase text-[10px] font-bold tracking-widest">
+                Saldo Previsto
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-slate-400 text-sm font-mono">R$</span>
+                <span
+                  className={`text-2xl font-mono font-bold ${predictedRemainingAmount >= 0 ? "text-indigo-400" : "text-red-400"}`}
+                >
+                  {predictedRemainingAmount.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-4">
           <Button
