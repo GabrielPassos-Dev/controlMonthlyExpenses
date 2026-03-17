@@ -215,45 +215,52 @@ export async function updateExpensePaid(req, res) {
     const userId = req.userId
 
     try {
-        const expense = await prisma.expense.findUnique({
-            where: { id: id },
-        });
-        if (!expense) {
-            return res.status(404).json({ error: "Expense not found" })
-        }
-        if (expense.paid === paid) {
-            return res.json(expense);
-        }
-        if (expense.type === ExpenseType.VARIABLE) {
-            return res.status(404).json({ error: "Apenas despesas fixas podem ser marcadas" })
-        }
+        const result = await prisma.$transaction(async (tx) => {
 
-        const panel = await prisma.panel.findFirst({
-            where: { userId, status: PanelStatus.ACTIVE }
-        })
-        if (!panel) {
-            return res.status(404).json({ error: "Active panel not found" })
-        }
+            const expense = await tx.expense.findUnique({
+                where: { id: id },
+            });
 
-        const [updatedExpense] = await prisma.$transaction([
-            prisma.expense.update({
+            if (!expense) throw new Error("EXPENSE_NOT_FOUND");
+
+            if (expense.paid === paid) {
+                return res.json(expense);
+            }
+
+            if (expense.type === "VARIABLE") throw new Error("ONLY_FIXED");
+
+            const panel = await tx.panel.findFirst({
+                where: { userId, status: "ACTIVE" }
+            });
+
+            if (!panel) throw new Error("PANEL_NOT_FOUND");
+
+            const updated = await tx.expense.update({
                 where: { id: id },
                 data: { paid: paid }
-            }),
-            prisma.panel.update({
+            });
+
+            await tx.panel.update({
                 where: { id: panel.id },
                 data: {
                     remainingAmount: {
                         [paid ? 'decrement' : 'increment']: Number(expense.amount)
                     }
                 }
-            })
-        ]);
+            });
 
-        return res.json(updatedExpense);
+            return updated;
+        });
+
+        return res.json(result);
     } catch (error) {
+        if (error.message === "EXPENSE_NOT_FOUND") return res.status(404).json({ error: "Despesa não encontrada" });
+        if (error.message === "ONLY_FIXED") return res.status(400).json({ error: "Apenas despesas fixas podem ser marcadas" });
+        if (error.message === "PANEL_NOT_FOUND") return res.status(404).json({ error: "Painel ativo não encontrado" });
+
         console.error(error)
-        return res.status(500).json({ error: "Internal server error" })
+        return res.status(500).json({ error: "Erro interno no servidor" });
+
     }
 }
 
