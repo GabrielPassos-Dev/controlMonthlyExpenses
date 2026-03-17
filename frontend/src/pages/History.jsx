@@ -27,12 +27,14 @@ export default function History() {
   return (
     <div className="bg-slate-950 min-h-screen w-full flex flex-col items-center px-4 py-12 overflow-x-hidden">
       <header className="w-full max-w-2xl mb-8 flex flex-col gap-2">
-        <h1 className="text-3xl font-bold text-white tracking-tight">
-          Histórico <span className="text-indigo-500">Financeiro</span>
-        </h1>
-        <p className="text-slate-400 text-sm">
-          Visualize e gerencie seus painéis de meses anteriores.
-        </p>
+        <div>
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Histórico <span className="text-indigo-500">Financeiro</span>
+          </h1>
+          <p className="text-slate-400 text-sm">
+            Visualize e gerencie seus painéis de meses anteriores.
+          </p>
+        </div>
         <div className="h-1 w-20 bg-indigo-500 rounded-full mt-2" />
       </header>
 

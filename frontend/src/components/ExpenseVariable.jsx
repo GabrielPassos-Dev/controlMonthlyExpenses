@@ -21,7 +21,7 @@ export default function ExpenseVariable({
   const [newSpAm, setSpAm] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmitSave(expense) {
+  async function handleUpdate(expense) {
     try {
       setIsLoading(true);
       await handleUpdateExpense(expense.id, {
@@ -34,6 +34,18 @@ export default function ExpenseVariable({
     } catch (error) {
       console.error("Erro ao salvar:", error);
       alert(error.message || "Erro ao salvar");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleDelete(exp) {
+    try {
+      setIsLoading(true);
+      await handleDeletedExpense(exp);
+    } catch (error) {
+      console.error("Erro ao deletar:", error);
+      alert(error.message || "Erro ao deletar");
     } finally {
       setIsLoading(false);
     }
@@ -153,9 +165,14 @@ export default function ExpenseVariable({
                 <Button
                   variant="danger"
                   className="!w-10 !h-10 !p-0"
-                  onClick={() => handleDeletedExpense(expense.id)}
+                  onClick={() => handleDelete(expense.id)}
+                  disabled={isLoading}
                 >
-                  <FaTrashAlt size={12} />
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <FaTrashAlt size={14} />
+                  )}
                 </Button>
               </div>
             </div>
@@ -248,7 +265,7 @@ export default function ExpenseVariable({
 
                   <Button
                     variant="primary"
-                    onClick={() => handleSubmitSave(expense)}
+                    onClick={() => handleUpdate(expense)}
                     disabled={isLoading}
                   >
                     {isLoading ? "Salvando..." : "Salvar Alterações"}

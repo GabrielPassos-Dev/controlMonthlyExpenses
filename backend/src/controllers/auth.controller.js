@@ -37,7 +37,7 @@ export async function registerUser(req, res) {
                 name,
                 email,
                 password: hashedPassword,
-                salary
+                salary: salary ?? 0
             }
         })
 

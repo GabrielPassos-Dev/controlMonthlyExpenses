@@ -33,14 +33,14 @@ export default function Dashboard() {
   return (
     <main className="bg-slate-950 min-h-screen w-full flex flex-col items-center justify-start md:justify-center p-4 py-12 overflow-x-hidden">
       <section className="w-full max-w-2xl flex flex-col gap-8 items-center">
-        <div className="w-full text-left mb-2">
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+        <header className="w-full max-w-2xl mb-2  flex flex-col">
+          <h1 className="text-3xl font-bold text-white tracking-tight">
             Meu <span className="text-indigo-500">Dashboard</span>
           </h1>
           <p className="text-slate-500 text-sm">
             Gerencie seu fluxo financeiro mensal
           </p>
-        </div>
+        </header>
 
         <div className="w-full flex flex-col gap-6">
           <CreateFinancial />
