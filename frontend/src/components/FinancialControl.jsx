@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { NumericFormat } from "react-number-format";
 import { createExpense } from "../services/financialService.js";
-import { Input } from "./ui/Input";
 
 export default function FinancialControl({ addExpense }) {
   const [amount, setAmount] = useState(0);

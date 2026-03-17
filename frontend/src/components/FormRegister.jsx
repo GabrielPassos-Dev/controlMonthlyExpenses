@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { NumericFormat } from "react-number-format";
-import Text from "./ui/text";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { registerUser } from "../services/authService";
