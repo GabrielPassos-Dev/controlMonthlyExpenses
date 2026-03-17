@@ -15,7 +15,7 @@ app.use(
     cors({
         origin: [
             "http://localhost:5173",
-            "https://seu-frontend.vercel.app"
+            "https://control-monthly-expenses-frontend.vercel.app/login"
         ],
     })
 );
