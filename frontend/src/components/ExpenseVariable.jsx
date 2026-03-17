@@ -19,15 +19,16 @@ export default function ExpenseVariable({
   const [newValue, setNewValue] = useState({});
   const [newName, setNewName] = useState({});
   const [newSpAm, setSpAm] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [updatingId, setUpdatingId] = useState(null);
 
-  async function handleUpdate(expense) {
+  async function handleUpdate(exp) {
     try {
-      setIsLoading(true);
-      await handleUpdateExpense(expense.id, {
-        name: newName[expense.id] ?? expense.name,
-        amount: newValue[expense.id] ?? expense.amount,
-        spentAmount: newSpAm[expense.id] ?? expense.spentAmount,
+      setUpdatingId(exp.id);
+      await handleUpdateExpense(exp.id, {
+        name: newName[exp.id] ?? exp.name,
+        amount: newValue[exp.id] ?? exp.amount,
+        spentAmount: newSpAm[exp.id] ?? exp.spentAmount,
       });
 
       setEditingExpenseId(null);
@@ -35,19 +36,19 @@ export default function ExpenseVariable({
       console.error("Erro ao salvar:", error);
       alert(error.message || "Erro ao salvar");
     } finally {
-      setIsLoading(false);
+      setUpdatingId(null);
     }
   }
 
   async function handleDelete(exp) {
     try {
-      setIsLoading(true);
+      setDeletingId(exp);
       await handleDeletedExpense(exp);
     } catch (error) {
       console.error("Erro ao deletar:", error);
       alert(error.message || "Erro ao deletar");
     } finally {
-      setIsLoading(false);
+      setDeletingId(null);
     }
   }
 
@@ -166,9 +167,9 @@ export default function ExpenseVariable({
                   variant="danger"
                   className="!w-10 !h-10 !p-0"
                   onClick={() => handleDelete(expense.id)}
-                  disabled={isLoading}
+                  disabled={deletingId === expense.id}
                 >
-                  {isLoading ? (
+                  {deletingId === expense.id ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <FaTrashAlt size={14} />
@@ -266,9 +267,11 @@ export default function ExpenseVariable({
                   <Button
                     variant="primary"
                     onClick={() => handleUpdate(expense)}
-                    disabled={isLoading}
+                    disabled={updatingId === expense.id}
                   >
-                    {isLoading ? "Salvando..." : "Salvar Alterações"}
+                    {updatingId === expense.id
+                      ? "Salvando..."
+                      : "Salvar Alterações"}
                   </Button>
                 </div>
               </Modal>

@@ -14,14 +14,15 @@ export default function ExpenseFixed({
   const [editingExpenseId, setEditingExpenseId] = useState(null);
   const [newValue, setNewValue] = useState({});
   const [newName, setNewName] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [updatingId, setUpdatingId] = useState(null);
 
-  async function handleUpdate(expense) {
+  async function handleUpdate(exp) {
     try {
-      setIsLoading(true);
-      await handleUpdateExpense(expense.id, {
-        name: newName[expense.id] ?? expense.name,
-        amount: newValue[expense.id] ?? expense.amount,
+      setUpdatingId(exp.id);
+      await handleUpdateExpense(exp.id, {
+        name: newName[exp.id] ?? exp.name,
+        amount: newValue[exp.id] ?? exp.amount,
       });
 
       setEditingExpenseId(null);
@@ -29,19 +30,19 @@ export default function ExpenseFixed({
       console.error("Erro ao salvar:", error);
       alert(error.message || "Erro ao salvar");
     } finally {
-      setIsLoading(false);
+      setUpdatingId(null);
     }
   }
 
   async function handleDelete(exp) {
     try {
-      setIsLoading(true);
+      setDeletingId(exp);
       await handleDeletedExpense(exp);
     } catch (error) {
       console.error("Erro ao deletar:", error);
       alert(error.message || "Erro ao deletar");
     } finally {
-      setIsLoading(false);
+      setDeletingId(null);
     }
   }
 
@@ -105,9 +106,9 @@ export default function ExpenseFixed({
               variant="danger"
               className="!w-10 !h-10 !p-0 flex items-center justify-center rounded-xl"
               onClick={() => handleDelete(expense.id)}
-              disabled={isLoading}
+              disabled={deletingId === expense.id}
             >
-              {isLoading ? (
+              {deletingId === expense.id ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <FaTrashAlt size={14} />
@@ -180,8 +181,14 @@ export default function ExpenseFixed({
                   </div>
                 </div>
 
-                <Button variant="primary" onClick={() => handleUpdate(expense)}>
-                  {isLoading ? "Salvando..." : "Confirmar Alterações"}
+                <Button
+                  variant="primary"
+                  onClick={() => handleUpdate(expense)}
+                  disabled={updatingId === expense.id}
+                >
+                  {updatingId === expense.id
+                    ? "Salvando..."
+                    : "Confirmar Alterações"}
                 </Button>
               </div>
             </Modal>

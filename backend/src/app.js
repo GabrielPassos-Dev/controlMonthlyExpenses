@@ -9,8 +9,16 @@ import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 
-app.use(cors());
 app.use(express.json());
+
+app.use(
+    cors({
+        origin: [
+            "http://localhost:5173",
+            "https://seu-frontend.vercel.app"
+        ],
+    })
+);
 
 app.use(authRoutes);
 app.use(financialRoutes);

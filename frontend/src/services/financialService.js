@@ -1,5 +1,7 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 export async function fetchExpenses(token) {
-    const response = await fetch("http://localhost:3000/financial", {
+    const response = await fetch(`${API_URL}/financial`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -15,7 +17,7 @@ export async function fetchExpenses(token) {
 }
 
 export async function deleteExpense(token, id) {
-    const response = await fetch(`http://localhost:3000/financial/${id}`, {
+    const response = await fetch(`${API_URL}/financial/${id}`, {
         method: "DELETE",
         headers: {
             Authorization: `Bearer ${token}`,
@@ -32,7 +34,7 @@ export async function deleteExpense(token, id) {
 }
 
 export async function updateExpense(token, id, expenseData) {
-    const response = await fetch(`http://localhost:3000/financial/${id}`, {
+    const response = await fetch(`${API_URL}/financial/${id}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
@@ -51,7 +53,7 @@ export async function updateExpense(token, id, expenseData) {
 }
 
 export async function createExpense(token, name, amount, type) {
-    const response = await fetch("http://localhost:3000/financial", {
+    const response = await fetch(`${API_URL}/financial`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -75,7 +77,7 @@ export async function createExpense(token, name, amount, type) {
 
 export async function updateExpensePaid(id, paid, token) {
     const response = await fetch(
-        `http://localhost:3000/expenses/${id}/paid`,
+        `${API_URL}/expenses/${id}/paid`,
         {
             method: "PATCH",
             headers: {
@@ -97,7 +99,7 @@ export async function updateExpensePaid(id, paid, token) {
 
 export async function updateSpentAmount(id, spentAmount, token) {
     const response = await fetch(
-        `http://localhost:3000/expenses/${id}/spentamount`,
+        `${API_URL}/expenses/${id}/spentamount`,
         {
             method: "PATCH",
             headers: {

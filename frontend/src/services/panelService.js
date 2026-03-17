@@ -1,5 +1,7 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 export async function createPanel(token, month, year) {
-    const response = await fetch("http://localhost:3000/dashboard/panel", {
+    const response = await fetch(`${API_URL}/dashboard/panel`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -23,7 +25,7 @@ export async function createPanel(token, month, year) {
 
 export async function checkPanel(token) {
     const response = await fetch(
-        "http://localhost:3000/dashboard/panel/active",
+        `${API_URL}/dashboard/panel/active`,
         {
             method: "GET",
             headers: {
@@ -44,7 +46,7 @@ export async function checkPanel(token) {
 
 export async function finishedPanel(token) {
     const response = await fetch(
-        "http://localhost:3000/dashboard/panel/finished",
+        `${API_URL}/dashboard/panel/finished`,
         {
             method: "GET",
             headers: {
@@ -65,7 +67,7 @@ export async function finishedPanel(token) {
 
 export async function updateStatusPanel(token) {
     const response = await fetch(
-        "http://localhost:3000/dashboard/panel/status",
+        `${API_URL}/dashboard/panel/status`,
         {
             method: "PATCH",
             headers: {
