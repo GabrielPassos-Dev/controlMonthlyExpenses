@@ -218,11 +218,12 @@ export async function updateExpensePaid(req, res) {
         const expense = await prisma.expense.findUnique({
             where: { id: id },
         });
-
         if (!expense) {
             return res.status(404).json({ error: "Expense not found" })
         }
-
+        if (expense.paid === paid) {
+            return res.json(expense);
+        }
         if (expense.type === ExpenseType.VARIABLE) {
             return res.status(404).json({ error: "Apenas despesas fixas podem ser marcadas" })
         }
@@ -230,24 +231,24 @@ export async function updateExpensePaid(req, res) {
         const panel = await prisma.panel.findFirst({
             where: { userId, status: PanelStatus.ACTIVE }
         })
-
         if (!panel) {
             return res.status(404).json({ error: "Active panel not found" })
         }
 
-        const updatedExpense = await prisma.expense.update({
-            where: { id: id },
-            data: { paid: paid }
-        });
-
-        await prisma.panel.update({
-            where: { id: panel.id },
-            data: {
-                remainingAmount: {
-                    [paid ? 'decrement' : 'increment']: Number(expense.amount)
+        const [updatedExpense] = await prisma.$transaction([
+            prisma.expense.update({
+                where: { id: id },
+                data: { paid: paid }
+            }),
+            prisma.panel.update({
+                where: { id: panel.id },
+                data: {
+                    remainingAmount: {
+                        [paid ? 'decrement' : 'increment']: Number(expense.amount)
+                    }
                 }
-            }
-        });
+            })
+        ]);
 
         return res.json(updatedExpense);
     } catch (error) {
