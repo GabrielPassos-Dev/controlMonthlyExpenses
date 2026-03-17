@@ -224,7 +224,7 @@ export async function updateExpensePaid(req, res) {
             if (!expense) throw new Error("EXPENSE_NOT_FOUND");
 
             if (expense.paid === paid) {
-                return res.json(expense);
+                return expense;
             }
 
             if (expense.type === "VARIABLE") throw new Error("ONLY_FIXED");
