@@ -72,23 +72,19 @@ export default function Financial() {
 
     if (togglingId[expense.id]) return;
 
-    setTogglingId((prev) => ({ ...prev, [expense.id]: true }));
+    setTogglingId((prev) => {
+      if (prev[expense.id]) return prev;
+      return { ...prev, [expense.id]: true };
+    });
 
     try {
       const updatedPaid = !expense.paid;
 
-      await updateExpensePaid(expense.id, updatedPaid, token);
+      const response = await updateExpensePaid(expense.id, updatedPaid, token);
 
-      setExpenses((prev) =>
-        prev.map((exp) =>
-          exp.id === expense.id ? { ...exp, paid: updatedPaid } : exp,
-        ),
-      );
+      setExpenses(response.expenses);
 
-      setRemainingAmount((prev) => {
-        const amountToAdjust = expense.amount || 0;
-        return updatedPaid ? prev - amountToAdjust : prev + amountToAdjust;
-      });
+      setRemainingAmount(response.remainingAmount);
     } catch (error) {
       console.error("Erro na API:", error);
       alert(

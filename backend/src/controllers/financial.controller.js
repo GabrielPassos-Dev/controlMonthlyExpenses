@@ -221,14 +221,6 @@ export async function updateExpensePaid(req, res) {
                 where: { id: id }
             });
 
-            if (!expense) throw new Error("EXPENSE_NOT_FOUND");
-
-            if (expense.paid === paid) {
-                return expense;
-            }
-
-            if (expense.type === "VARIABLE") throw new Error("ONLY_FIXED");
-
             const panel = await tx.panel.findFirst({
                 where: {
                     userId: userId,
@@ -236,12 +228,41 @@ export async function updateExpensePaid(req, res) {
                 }
             });
 
+            if (!expense) throw new Error("EXPENSE_NOT_FOUND");
             if (!panel) throw new Error("PANEL_NOT_FOUND");
+            if (expense.type === "VARIABLE") throw new Error("ONLY_FIXED");
 
-            const updated = await tx.expense.update({
-                where: { id: id },
-                data: { paid: paid }
+            if (expense.paid === paid) {
+                return {
+                    expense,
+                    remainingAmount: panel.remainingAmount
+                }
+            }
+
+            const updated = await tx.expense.updateMany({
+                where: {
+                    id: id,
+                    paid: !paid
+                },
+                data: {
+                    paid: paid
+                }
             });
+
+            if (updated.count === 0) {
+                const currentExpense = await tx.expense.findUnique({
+                    where: { id }
+                });
+
+                const currentPanel = await tx.panel.findUnique({
+                    where: { id: panel.id }
+                });
+
+                return {
+                    expense: currentExpense,
+                    remainingAmount: currentPanel.remainingAmount
+                };
+            }
 
             await tx.panel.update({
                 where: { id: panel.id },
@@ -252,7 +273,18 @@ export async function updateExpensePaid(req, res) {
                 }
             });
 
-            return updated;
+            const updatedPanel = await tx.panel.findUnique({
+                where: { id: panel.id }
+            });
+
+            const finalExpense = await tx.expense.findUnique({
+                where: { id }
+            });
+
+            return {
+                expense: finalExpense,
+                remainingAmount: updatedPanel.remainingAmount
+            };
         });
 
         return res.json(result);
