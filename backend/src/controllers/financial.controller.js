@@ -217,7 +217,9 @@ export async function updateExpensePaid(req, res) {
     try {
         const result = await prisma.$transaction(async (tx) => {
 
-            const [expense] = await tx.$queryRaw`SELECT * FROM "Expense" WHERE id = ${id} FOR UPDATE`;
+            const expense = await tx.expense.findUnique({
+                where: { id: id }
+            });
 
             if (!expense) throw new Error("EXPENSE_NOT_FOUND");
 
@@ -227,7 +229,12 @@ export async function updateExpensePaid(req, res) {
 
             if (expense.type === "VARIABLE") throw new Error("ONLY_FIXED");
 
-            const [panel] = await tx.$queryRaw`SELECT * FROM "Panel" WHERE userId = ${userId} AND status = 'ACTIVE' FOR UPDATE`;
+            const panel = await tx.panel.findFirst({
+                where: {
+                    userId: userId,
+                    status: 'ACTIVE'
+                }
+            });
 
             if (!panel) throw new Error("PANEL_NOT_FOUND");
 

@@ -10,6 +10,7 @@ export default function FinancialList({
   updateExpenseSpent,
   handleUpdateExpense,
   setRemainingAmount,
+  togglingId,
 }) {
   const [spentValues, setSpentValues] = useState({});
 
@@ -81,6 +82,7 @@ export default function FinancialList({
               handleTogglePaid={handleTogglePaid}
               handleDeletedExpense={handleDeletedExpense}
               handleUpdateExpense={handleUpdateExpense}
+              togglingId={togglingId}
             />
           </div>
         </div>

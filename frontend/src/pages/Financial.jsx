@@ -17,6 +17,7 @@ export default function Financial() {
   const [salarySnapshot, setSalarySnapshot] = useState(0);
   const [remainingAmount, setRemainingAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [togglingId, setTogglingId] = useState({});
 
   const predictedRemainingAmount =
     salarySnapshot -
@@ -69,8 +70,13 @@ export default function Financial() {
   async function handleTogglePaid(expense) {
     const token = localStorage.getItem("token");
 
+    if (togglingId[expense.id]) return;
+
+    setTogglingId((prev) => ({ ...prev, [expense.id]: true }));
+
     try {
       const updatedPaid = !expense.paid;
+
       await updateExpensePaid(expense.id, updatedPaid, token);
 
       setExpenses((prev) =>
@@ -84,8 +90,16 @@ export default function Financial() {
         return updatedPaid ? prev - amountToAdjust : prev + amountToAdjust;
       });
     } catch (error) {
-      console.error("Erro ao marcar despesa:", error);
-      alert(error.message || "Erro ao marcar despesa");
+      console.error("Erro na API:", error);
+      alert(
+        "Falha ao atualizar: " + (error.response?.data?.error || error.message),
+      );
+    } finally {
+      setTogglingId((prev) => {
+        const newMap = { ...prev };
+        delete newMap[expense.id];
+        return newMap;
+      });
     }
   }
 
@@ -147,6 +161,7 @@ export default function Financial() {
             updateExpenseSpent={updateExpenseSpent}
             handleUpdateExpense={handleUpdateExpense}
             setRemainingAmount={setRemainingAmount}
+            togglingId={togglingId}
           />
         </div>
 
