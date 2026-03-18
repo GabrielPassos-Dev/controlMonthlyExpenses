@@ -82,7 +82,9 @@ export default function Financial() {
 
       const response = await updateExpensePaid(expense.id, updatedPaid, token);
 
-      setExpenses(response.expenses);
+      setExpenses((prev) =>
+        prev.map((exp) => (exp.id === expense.id ? response.expense : exp)),
+      );
 
       setRemainingAmount(response.remainingAmount);
     } catch (error) {

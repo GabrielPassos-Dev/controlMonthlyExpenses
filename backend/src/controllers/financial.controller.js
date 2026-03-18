@@ -215,79 +215,75 @@ export async function updateExpensePaid(req, res) {
     const userId = req.userId
 
     try {
-        const result = await prisma.$transaction(async (tx) => {
+        const expense = await prisma.expense.findUnique({
+            where: { id: id }
+        });
 
-            const expense = await tx.expense.findUnique({
-                where: { id: id }
-            });
-
-            const panel = await tx.panel.findFirst({
-                where: {
-                    userId: userId,
-                    status: 'ACTIVE'
-                }
-            });
-
-            if (!expense) throw new Error("EXPENSE_NOT_FOUND");
-            if (!panel) throw new Error("PANEL_NOT_FOUND");
-            if (expense.type === "VARIABLE") throw new Error("ONLY_FIXED");
-
-            if (expense.paid === paid) {
-                return {
-                    expense,
-                    remainingAmount: panel.remainingAmount
-                }
+        const panel = await prisma.panel.findFirst({
+            where: {
+                userId: userId,
+                status: 'ACTIVE'
             }
+        });
 
-            const updated = await tx.expense.updateMany({
-                where: {
-                    id: id,
-                    paid: !paid
-                },
-                data: {
-                    paid: paid
-                }
-            });
+        if (!expense) throw new Error("EXPENSE_NOT_FOUND");
+        if (!panel) throw new Error("PANEL_NOT_FOUND");
+        if (expense.type === "VARIABLE") throw new Error("ONLY_FIXED");
 
-            if (updated.count === 0) {
-                const currentExpense = await tx.expense.findUnique({
-                    where: { id }
-                });
-
-                const currentPanel = await tx.panel.findUnique({
-                    where: { id: panel.id }
-                });
-
-                return {
-                    expense: currentExpense,
-                    remainingAmount: currentPanel.remainingAmount
-                };
+        if (expense.paid === paid) {
+            return {
+                expense,
+                remainingAmount: panel.remainingAmount
             }
+        }
 
-            await tx.panel.update({
-                where: { id: panel.id },
-                data: {
-                    remainingAmount: {
-                        [paid ? 'decrement' : 'increment']: Number(expense.amount)
-                    }
-                }
-            });
+        const updated = await prisma.expense.updateMany({
+            where: {
+                id: id,
+                paid: !paid
+            },
+            data: {
+                paid: paid
+            }
+        });
 
-            const updatedPanel = await tx.panel.findUnique({
-                where: { id: panel.id }
-            });
-
-            const finalExpense = await tx.expense.findUnique({
+        if (updated.count === 0) {
+            const currentExpense = await prisma.expense.findUnique({
                 where: { id }
             });
 
+            const currentPanel = await prisma.panel.findUnique({
+                where: { id: panel.id }
+            });
+
             return {
-                expense: finalExpense,
-                remainingAmount: updatedPanel.remainingAmount
+                expense: currentExpense,
+                remainingAmount: currentPanel.remainingAmount
             };
+        }
+
+        await prisma.panel.update({
+            where: { id: panel.id },
+            data: {
+                remainingAmount: {
+                    [paid ? 'decrement' : 'increment']: Number(expense.amount)
+                }
+            }
         });
 
-        return res.json(result);
+        const updatedPanel = await prisma.panel.findUnique({
+            where: { id: panel.id }
+        });
+
+        const finalExpense = await prisma.expense.findUnique({
+            where: { id }
+        });
+
+        return res.json({
+            expense: finalExpense,
+            remainingAmount: updatedPanel.remainingAmount
+        });
+
     } catch (error) {
         if (error.message === "EXPENSE_NOT_FOUND") return res.status(404).json({ error: "Despesa não encontrada" });
         if (error.message === "ONLY_FIXED") return res.status(400).json({ error: "Apenas despesas fixas podem ser marcadas" });
