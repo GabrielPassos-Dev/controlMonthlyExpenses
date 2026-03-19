@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL;
+
 export async function loginUser(email, password) {
     const response = await fetch(`${API_URL}/login`, {
         method: "POST",
@@ -11,7 +12,7 @@ export async function loginUser(email, password) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.error);
+        throw new Error(data.message || "Credenciais inválidas ou erro no servidor");
     }
 
     return data;
@@ -34,7 +35,7 @@ export async function registerUser(name, email, password, salary) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.error);
+        throw new Error(data.message || "Erro no servidor, tente novamente mais tarde");
     }
 
     return data;

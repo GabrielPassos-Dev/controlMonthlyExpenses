@@ -237,6 +237,7 @@ export async function updateExpensePaid(req, res) {
             }
         }
 
+        //updateMany Serve pra: Atualizar só se ainda estiver no estado esperado
         const updated = await prisma.expense.updateMany({
             where: {
                 id: id,
@@ -247,6 +248,7 @@ export async function updateExpensePaid(req, res) {
             }
         });
 
+        //count é o número de atualizações
         if (updated.count === 0) {
             const currentExpense = await prisma.expense.findUnique({
                 where: { id }

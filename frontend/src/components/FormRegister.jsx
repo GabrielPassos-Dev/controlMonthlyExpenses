@@ -12,17 +12,22 @@ export default function FormRegister({ onSwitchForm }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   async function handleRegister(event) {
     event.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
       const data = await registerUser(name, email, password, salary);
-
       localStorage.setItem("token", data.token);
       navigate("/dashboard");
-    } catch (error) {
-      console.error("Erro no registro:", error);
-      alert(error.message);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -88,7 +93,6 @@ export default function FormRegister({ onSwitchForm }) {
           />
         </div>
 
-        {/* Campo Salário - Destaque em Esmeralda */}
         <div className="flex flex-col gap-1 group">
           <label
             htmlFor="salary"
@@ -111,14 +115,36 @@ export default function FormRegister({ onSwitchForm }) {
           />
         </div>
 
+        {error && (
+          <div className="bg-red-500/10 border-l-4 border-red-500 p-4 rounded-r-xl animate-shake">
+            <div className="flex items-center gap-3">
+              <svg
+                xmlns="http://www.w3.org"
+                className="h-5 w-5 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="text-red-200 text-sm font-medium">{error}</span>
+            </div>
+          </div>
+        )}
+
         <Button
           variant="primary"
+          disabled={isLoading}
           className="mt-4 py-4 font-bold shadow-indigo-600/20"
         >
-          Finalizar Cadastro
+          {isLoading ? "Criando Conta" : "Finalizar Cadastro"}
         </Button>
 
-        {/* Link para Voltar ao Login */}
         <div className="flex flex-col items-center gap-2 mt-2">
           <p className="text-slate-400 text-sm">Já possui cadastro?</p>
           <button
