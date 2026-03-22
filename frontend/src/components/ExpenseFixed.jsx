@@ -4,19 +4,21 @@ import { Button } from "./ui/Button";
 import { useState } from "react";
 import { LiaTimesSolid } from "react-icons/lia";
 import Modal from "./Modal";
+import { useFinancialController } from "../hooks/useFinancialController";
 
-export default function ExpenseFixed({
-  fixedExpenses,
-  handleTogglePaid,
-  handleDeletedExpense,
-  handleUpdateExpense,
-  togglingId,
-}) {
+export default function ExpenseFixed({ fixedExpenses }) {
   const [editingExpenseId, setEditingExpenseId] = useState(null);
   const [newValue, setNewValue] = useState({});
   const [newName, setNewName] = useState({});
   const [deletingId, setDeletingId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+
+  const {
+    togglingId,
+    handleTogglePaid,
+    handleDeletedExpense,
+    handleUpdateExpense,
+  } = useFinancialController();
 
   async function handleUpdate(exp) {
     try {

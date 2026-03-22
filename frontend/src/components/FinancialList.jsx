@@ -1,16 +1,13 @@
 import { useState } from "react";
 import ExpenseFixed from "./ExpenseFixed";
 import ExpenseVariable from "./ExpenseVariable";
+import { useFinancial } from "../context/FinancialContext";
+import { useFinancialController } from "../hooks/useFinancialController";
 
-export default function FinancialList({
-  expenses,
-  handleTogglePaid,
-  handleUpdateExpense,
-  togglingId,
-  handleDeletedExpense,
-  handleUpdateSpAm,
-}) {
+export default function FinancialList() {
   const [spentValues, setSpentValues] = useState({});
+  const { expenses } = useFinancial();
+  const { handleUpdateSpAm } = useFinancialController();
 
   const fixedExpenses = expenses.filter(
     (expense) => expense && expense.type === "FIXED",
@@ -52,13 +49,7 @@ export default function FinancialList({
           </div>
 
           <div className="bg-slate-900/40 rounded-2xl p-1 backdrop-blur-sm border border-slate-800/50">
-            <ExpenseFixed
-              fixedExpenses={fixedExpenses}
-              handleTogglePaid={handleTogglePaid}
-              handleDeletedExpense={handleDeletedExpense}
-              handleUpdateExpense={handleUpdateExpense}
-              togglingId={togglingId}
-            />
+            <ExpenseFixed fixedExpenses={fixedExpenses} />
           </div>
         </div>
       )}
@@ -79,8 +70,6 @@ export default function FinancialList({
               spentValues={spentValues}
               setSpentValues={setSpentValues}
               onConfirmSpent={onConfirmSpent}
-              handleDeletedExpense={handleDeletedExpense}
-              handleUpdateExpense={handleUpdateExpense}
             />
           </div>
         </div>

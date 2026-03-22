@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { NumericFormat } from "react-number-format";
 import { createExpense } from "../services/financialService.js";
+import { useFinancialController } from "../hooks/useFinancialController.js";
+import { useNotification } from "../context/NotificationContext.jsx";
 
-export default function FinancialControl({ addExpense, addNotification }) {
+export default function FinancialControl() {
   const [amount, setAmount] = useState(0);
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingT, setIstLoadingT] = useState(false);
+
+  const { addNotification } = useNotification();
+  const { addExpense } = useFinancialController();
 
   async function handleCreateExpenses(type) {
     const token = localStorage.getItem("token");

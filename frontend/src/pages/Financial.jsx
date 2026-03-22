@@ -1,166 +1,16 @@
-import { useState } from "react";
-import { useEffect } from "react";
 import FinancialControl from "../components/FinancialControl";
 import FinancialList from "../components/FinancialList";
 import { Button } from "../components/ui/Button";
-import {
-  deleteExpense,
-  fetchExpenses,
-  updateExpense,
-  updateExpensePaid,
-  updateSpentAmount,
-} from "../services/financialService.js";
-import { updateStatusPanel } from "../services/panelService.js";
-import { useNavigate } from "react-router-dom";
-import { useNotification } from "../hooks/useNotification";
 import NotificationContainer from "../components/NotificationContainer";
+import { useFinancialController } from "../hooks/useFinancialController";
+import { useFinancial } from "../context/FinancialContext.jsx";
+import { useNotification } from "../context/NotificationContext.jsx";
 
 export default function Financial() {
-  const navigate = useNavigate();
-  const [expenses, setExpenses] = useState([]);
-  const [salarySnapshot, setSalarySnapshot] = useState(0);
-  const [remainingAmount, setRemainingAmount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [togglingId, setTogglingId] = useState({});
-
-  const { notifications, addNotification, removeNotification } =
-    useNotification();
-
-  const predictedRemainingAmount =
-    salarySnapshot -
-    expenses.reduce((acc, expense) => acc + (expense.amount || 0), 0);
-
-  async function handleFetchExpenses() {
-    const token = localStorage.getItem("token");
-    try {
-      const data = await fetchExpenses(token);
-      setExpenses(data.expenses);
-      setSalarySnapshot(data.panel.salarySnapshot);
-      setRemainingAmount(data.panel.remainingAmount);
-    } catch (error) {
-      console.error("Erro ao carregar despesas: ", error);
-      alert(error.message);
-    }
-  }
-
-  useEffect(() => {
-    handleFetchExpenses();
-  }, []);
-
-  function addExpense(newExpense) {
-    setExpenses((prev) => [newExpense, ...prev]);
-  }
-
-  async function handleDeletedExpense(id) {
-    try {
-      const token = localStorage.getItem("token");
-      if (!id) throw new Error("Despesa já foi removida");
-      const data = await deleteExpense(token, id);
-
-      setExpenses((prev) => prev.filter((e) => e.id !== id));
-
-      if (data.expense) {
-        if (data.expense.type === "FIXED" && data.expense.paid) {
-          setRemainingAmount((prev) => prev + data.expense.amount);
-        } else if (data.expense.type === "VARIABLE") {
-          setRemainingAmount((prev) => prev + (data.expense.spentAmount || 0));
-        }
-      }
-
-      addNotification("Despesa removida com sucesso", "success");
-    } catch (error) {
-      console.error("Erro ao deletar despesa:", error);
-      addNotification(error.message || "Erro de conexão", "error");
-    }
-  }
-
-  async function handleUpdateExpense(id, expenseData) {
-    const token = localStorage.getItem("token");
-
-    try {
-      const data = await updateExpense(token, id, expenseData);
-
-      setRemainingAmount(data.panel.remainingAmount);
-
-      setExpenses((prevExpenses) =>
-        prevExpenses.map((expense) =>
-          expense.id === id ? { ...expense, ...expenseData } : expense,
-        ),
-      );
-
-      addNotification("Despesa alterada com sucesso", "success");
-    } catch (error) {
-      console.error("Erro ao atualizar despesa:", error);
-      addNotification(error.message || "Erro de conexão", "error");
-    }
-  }
-
-  async function handleUpdateSpAm(id, value) {
-    const token = localStorage.getItem("token");
-
-    try {
-      const data = await updateSpentAmount(id, value, token);
-
-      setExpenses((prev) =>
-        prev.map((exp) =>
-          exp.id === id ? { ...exp, spentAmount: data.spentAmount } : exp,
-        ),
-      );
-
-      setRemainingAmount((prev) => prev - value);
-
-      addNotification("Gasto registrado com sucesso!", "success");
-    } catch (error) {
-      console.error("Erro ao atualizar gasto:", error);
-      addNotification(error.message || "Erro ao atualizar gasto", "error");
-    }
-  }
-
-  async function handleToggleStatus() {
-    const token = localStorage.getItem("token");
-    try {
-      setIsLoading(true);
-      await updateStatusPanel(token);
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Erro ao encerrar panel: ", error);
-      addNotification(error.message || "Erro ao encerrar panel", "error");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function handleTogglePaid(expense) {
-    const token = localStorage.getItem("token");
-
-    if (togglingId[expense.id]) return;
-
-    setTogglingId((prev) => {
-      if (prev[expense.id]) return prev;
-      return { ...prev, [expense.id]: true };
-    });
-
-    try {
-      const updatedPaid = !expense.paid;
-
-      const response = await updateExpensePaid(expense.id, updatedPaid, token);
-
-      setExpenses((prev) =>
-        prev.map((exp) => (exp.id === expense.id ? response.expense : exp)),
-      );
-
-      setRemainingAmount(response.remainingAmount);
-    } catch (error) {
-      console.error("Erro na API:", error);
-      addNotification(error.message || "Erro de conexão", "error");
-    } finally {
-      setTogglingId((prev) => {
-        const newMap = { ...prev };
-        delete newMap[expense.id];
-        return newMap;
-      });
-    }
-  }
+  const { salarySnapshot, remainingAmount } = useFinancial();
+  const { notifications, removeNotification } = useNotification();
+  const { isLoading, predictedRemainingAmount, handleToggleStatus } =
+    useFinancialController();
 
   return (
     <main className="bg-slate-950 min-h-screen w-full flex flex-col items-center justify-start md:justify-center p-4 py-10 md:py-20 overflow-x-hidden">
@@ -188,22 +38,11 @@ export default function Financial() {
         </div>
 
         <div className="w-full bg-slate-900/50 p-1 rounded-2xl border border-slate-800 shadow-2xl">
-          <FinancialControl
-            addExpense={addExpense}
-            addNotification={addNotification}
-          />
+          <FinancialControl />
         </div>
 
         <div className="w-full">
-          <FinancialList
-            expenses={expenses}
-            handleTogglePaid={handleTogglePaid}
-            handleUpdateExpense={handleUpdateExpense}
-            setRemainingAmount={setRemainingAmount}
-            togglingId={togglingId}
-            handleDeletedExpense={handleDeletedExpense}
-            handleUpdateSpAm={handleUpdateSpAm}
-          />
+          <FinancialList />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
