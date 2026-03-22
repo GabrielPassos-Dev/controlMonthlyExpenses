@@ -61,7 +61,7 @@ export default function ExpenseFixed({
                 checked={expense.paid}
                 disabled={!!togglingId[expense.id]}
                 onChange={() => handleTogglePaid(expense)}
-                className={`appearance-none w-5 h-5 rounded-md border-2 border-slate-600 bg-slate-800 checked:bg-indigo-500 checked:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:ring-offset-0 transition-all duration-200 cursor-pointer relative before:content-[''] before:absolute before:inset-0 before:flex before:items-center before:justify-center checked:before:content-['✓'] before:text-white before:text-[12px] before:font-black ${togglingId[expense.id] ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                className={`appearance-none w-8 h-8 rounded-md border-2 border-slate-600 bg-slate-800 checked:bg-indigo-500 checked:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:ring-offset-0 transition-all duration-200 cursor-pointer relative before:content-[''] before:absolute before:inset-0 before:flex before:items-center before:justify-center checked:before:content-['✓'] before:text-white before:text-[18px] before:font-black ${togglingId[expense.id] ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
               />
 
               <div className="flex flex-col">

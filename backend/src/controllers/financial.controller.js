@@ -1,6 +1,6 @@
 import { ExpenseType, PanelStatus } from "@prisma/client";
 import prisma from "../lib/prisma.js";
-import { createExpenseSchema, deleteExpenseSchema, updateExpenseSchema } from "../schemas/expenseSchema.js";
+import { createExpenseSchema, deleteExpenseSchema, updateExpenseSchema, updatePaidSchema } from "../schemas/expenseSchema.js";
 import delay from "../utils/delay.js";
 
 export async function createExpense(req, res) {
@@ -39,7 +39,10 @@ export async function createExpense(req, res) {
             }
         })
 
-        return res.status(201).json({ expense })
+        return res.status(201).json({
+            message: "Despesa criada com sucesso",
+            expense
+        });
 
     } catch (error) {
         console.error("CREATE_EXPENSE_ERROR:", error);
@@ -171,15 +174,24 @@ export async function updateExpense(req, res) {
         })
 
         if (!expense) {
-            return res.status(404).json({ error: "Expense not found" })
+            return res.status(404).json({
+                error: "EXPENSE_NOT_FOUND",
+                message: "Despesa não encontrada"
+            })
         }
 
         if (expense.panel.userId !== userId) {
-            return res.status(403).json({ error: "Not authorized" })
+            return res.status(403).json({
+                error: "NOT_AUTHORIZED",
+                message: "Usuario não encontrado"
+            })
         }
 
         if (expense.paid === true) {
-            return res.status(403).json({ error: "Não é possivel editar despesa paga" })
+            return res.status(403).json({
+                error: "NOT_PAID",
+                message: "Não é possivel alterar despesa paga"
+            })
         }
 
         const data = {};
@@ -207,7 +219,10 @@ export async function updateExpense(req, res) {
                 });
             }
         } else {
-            return res.status(404).json({ error: "Despesa invalida" })
+            return res.status(404).json({
+                error: "EXPENSE_INVALID",
+                message: "Por favor escolha entre despesa Fixo ou Variavel"
+            })
         }
 
         const newExpense = await prisma.expense.update({
@@ -230,14 +245,26 @@ export async function updateExpense(req, res) {
 
     } catch (error) {
         console.error(error)
-        return res.status(500).json({ error: "Internal server error" })
+        return res.status(500).json({
+            error: "INTERNAL_SERVER_ERROR",
+            message: "Erro inesperado. Tente novamente mais tarde."
+        })
     }
 
 }
 
 export async function updateExpensePaid(req, res) {
-    const { id } = req.params;
-    const { paid } = req.body;
+    const parsed = updatePaidSchema.safeParse({ ...req.params, ...req.body })
+
+    if (!parsed.success) {
+        return res.status(400).json({
+            error: "VALIDATION_ERROR",
+            message: parsed.error.issues[0].message
+        });
+    }
+
+    const { id, paid } = parsed.data;
+
     const userId = req.userId
 
     try {
@@ -257,10 +284,10 @@ export async function updateExpensePaid(req, res) {
         if (expense.type === "VARIABLE") throw new Error("ONLY_FIXED");
 
         if (expense.paid === paid) {
-            return {
+            return res.json({
                 expense,
                 remainingAmount: panel.remainingAmount
-            }
+            })
         }
 
         //updateMany Serve pra: Atualizar só se ainda estiver no estado esperado
@@ -284,10 +311,10 @@ export async function updateExpensePaid(req, res) {
                 where: { id: panel.id }
             });
 
-            return {
+            return res.json({
                 expense: currentExpense,
                 remainingAmount: currentPanel.remainingAmount
-            };
+            });
         }
 
         await prisma.panel.update({
@@ -313,12 +340,15 @@ export async function updateExpensePaid(req, res) {
         });
 
     } catch (error) {
-        if (error.message === "EXPENSE_NOT_FOUND") return res.status(404).json({ error: "Despesa não encontrada" });
-        if (error.message === "ONLY_FIXED") return res.status(400).json({ error: "Apenas despesas fixas podem ser marcadas" });
-        if (error.message === "PANEL_NOT_FOUND") return res.status(404).json({ error: "Painel ativo não encontrado" });
+        if (error.message === "EXPENSE_NOT_FOUND") return res.status(404).json({ message: "Despesa não encontrada" });
+        if (error.message === "ONLY_FIXED") return res.status(400).json({ message: "Apenas despesas fixas podem ser marcadas" });
+        if (error.message === "PANEL_NOT_FOUND") return res.status(404).json({ message: "Painel ativo não encontrado" });
 
         console.error(error)
-        return res.status(500).json({ error: "Erro interno no servidor" });
+        return res.status(500).json({
+            error: "INTERNAL_SERVER_ERROR",
+            message: "Erro inesperado. Tente novamente mais tarde."
+        });
 
     }
 }

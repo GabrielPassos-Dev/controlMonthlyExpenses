@@ -11,7 +11,7 @@ export default function ExpenseVariable({
   remainingBalance,
   spentValues,
   setSpentValues,
-  handleUpdateSpAm,
+  onConfirmSpent,
   handleDeletedExpense,
   handleUpdateExpense,
 }) {
@@ -143,11 +143,11 @@ export default function ExpenseVariable({
                     }))
                   }
                   onKeyDown={(e) =>
-                    e.key === "Enter" && handleUpdateSpAm(expense.id)
+                    e.key === "Enter" && onConfirmSpent(expense.id)
                   }
                 />
                 <button
-                  onClick={() => handleUpdateSpAm(expense.id)}
+                  onClick={() => onConfirmSpent(expense.id)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-400 transition-colors p-1"
                   title="Confirmar gasto"
                 >

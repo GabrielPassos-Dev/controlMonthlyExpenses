@@ -69,12 +69,11 @@ export async function updateExpense(token, id, expenseData) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.error);
+        throw new Error(data.message);
     }
 
     return data;
 }
-
 
 export async function updateExpensePaid(id, paid, token) {
     const response = await fetch(
@@ -92,7 +91,7 @@ export async function updateExpensePaid(id, paid, token) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.error);
+        throw new Error(data.message);
     }
 
     return data;

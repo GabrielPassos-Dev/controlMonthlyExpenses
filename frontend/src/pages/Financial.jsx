@@ -4,12 +4,16 @@ import FinancialControl from "../components/FinancialControl";
 import FinancialList from "../components/FinancialList";
 import { Button } from "../components/ui/Button";
 import {
+  deleteExpense,
   fetchExpenses,
   updateExpense,
   updateExpensePaid,
+  updateSpentAmount,
 } from "../services/financialService.js";
 import { updateStatusPanel } from "../services/panelService.js";
 import { useNavigate } from "react-router-dom";
+import { useNotification } from "../hooks/useNotification";
+import NotificationContainer from "../components/NotificationContainer";
 
 export default function Financial() {
   const navigate = useNavigate();
@@ -18,6 +22,9 @@ export default function Financial() {
   const [remainingAmount, setRemainingAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [togglingId, setTogglingId] = useState({});
+
+  const { notifications, addNotification, removeNotification } =
+    useNotification();
 
   const predictedRemainingAmount =
     salarySnapshot -
@@ -44,15 +51,68 @@ export default function Financial() {
     setExpenses((prev) => [newExpense, ...prev]);
   }
 
-  function removeExpense(id, expense) {
-    setExpenses((prev) => prev.filter((exp) => exp.id !== id));
+  async function handleDeletedExpense(id) {
+    try {
+      const token = localStorage.getItem("token");
+      if (!id) throw new Error("Despesa já foi removida");
+      const data = await deleteExpense(token, id);
 
-    if (!expense) return;
+      setExpenses((prev) => prev.filter((e) => e.id !== id));
 
-    if (expense.type === "FIXED" && expense.paid === true) {
-      setRemainingAmount((prev) => prev + expense.amount);
-    } else if (expense.type === "VARIABLE") {
-      setRemainingAmount((prev) => prev + (expense.spentAmount || 0));
+      if (data.expense) {
+        if (data.expense.type === "FIXED" && data.expense.paid) {
+          setRemainingAmount((prev) => prev + data.expense.amount);
+        } else if (data.expense.type === "VARIABLE") {
+          setRemainingAmount((prev) => prev + (data.expense.spentAmount || 0));
+        }
+      }
+
+      addNotification("Despesa removida com sucesso", "success");
+    } catch (error) {
+      console.error("Erro ao deletar despesa:", error);
+      addNotification(error.message || "Erro de conexão", "error");
+    }
+  }
+
+  async function handleUpdateExpense(id, expenseData) {
+    const token = localStorage.getItem("token");
+
+    try {
+      const data = await updateExpense(token, id, expenseData);
+
+      setRemainingAmount(data.panel.remainingAmount);
+
+      setExpenses((prevExpenses) =>
+        prevExpenses.map((expense) =>
+          expense.id === id ? { ...expense, ...expenseData } : expense,
+        ),
+      );
+
+      addNotification("Despesa alterada com sucesso", "success");
+    } catch (error) {
+      console.error("Erro ao atualizar despesa:", error);
+      addNotification(error.message || "Erro de conexão", "error");
+    }
+  }
+
+  async function handleUpdateSpAm(id, value) {
+    const token = localStorage.getItem("token");
+
+    try {
+      const data = await updateSpentAmount(id, value, token);
+
+      setExpenses((prev) =>
+        prev.map((exp) =>
+          exp.id === id ? { ...exp, spentAmount: data.spentAmount } : exp,
+        ),
+      );
+
+      setRemainingAmount((prev) => prev - value);
+
+      addNotification("Gasto registrado com sucesso!", "success");
+    } catch (error) {
+      console.error("Erro ao atualizar gasto:", error);
+      addNotification(error.message || "Erro ao atualizar gasto", "error");
     }
   }
 
@@ -64,7 +124,7 @@ export default function Financial() {
       navigate("/dashboard");
     } catch (error) {
       console.error("Erro ao encerrar panel: ", error);
-      alert(error.message);
+      addNotification(error.message || "Erro ao encerrar panel", "error");
     } finally {
       setIsLoading(false);
     }
@@ -92,9 +152,7 @@ export default function Financial() {
       setRemainingAmount(response.remainingAmount);
     } catch (error) {
       console.error("Erro na API:", error);
-      alert(
-        "Falha ao atualizar: " + (error.response?.data?.error || error.message),
-      );
+      addNotification(error.message || "Erro de conexão", "error");
     } finally {
       setTogglingId((prev) => {
         const newMap = { ...prev };
@@ -104,34 +162,13 @@ export default function Financial() {
     }
   }
 
-  async function handleUpdateExpense(id, expenseData) {
-    const token = localStorage.getItem("token");
-    try {
-      const data = await updateExpense(token, id, expenseData);
-
-      setRemainingAmount(data.panel.remainingAmount);
-
-      setExpenses((prevExpenses) =>
-        prevExpenses.map((expense) =>
-          expense.id === id ? { ...expense, ...expenseData } : expense,
-        ),
-      );
-    } catch (error) {
-      console.error("Erro ao atualizar despesa:", error);
-      alert(error.message);
-    }
-  }
-
-  function updateExpenseSpent(id, newSpent) {
-    setExpenses((prev) =>
-      prev.map((exp) =>
-        exp.id === id ? { ...exp, spentAmount: newSpent } : exp,
-      ),
-    );
-  }
-
   return (
     <main className="bg-slate-950 min-h-screen w-full flex flex-col items-center justify-start md:justify-center p-4 py-10 md:py-20 overflow-x-hidden">
+      <NotificationContainer
+        notifications={notifications}
+        removeNotification={removeNotification}
+      />
+
       <section className="w-full max-w-2xl flex flex-col gap-6 items-center">
         <div className="flex flex-col items-center gap-1 mb-4">
           <span className="text-slate-500 uppercase text-xs font-bold tracking-widest">
@@ -151,18 +188,21 @@ export default function Financial() {
         </div>
 
         <div className="w-full bg-slate-900/50 p-1 rounded-2xl border border-slate-800 shadow-2xl">
-          <FinancialControl addExpense={addExpense} />
+          <FinancialControl
+            addExpense={addExpense}
+            addNotification={addNotification}
+          />
         </div>
 
         <div className="w-full">
           <FinancialList
             expenses={expenses}
-            removeExpense={removeExpense}
             handleTogglePaid={handleTogglePaid}
-            updateExpenseSpent={updateExpenseSpent}
             handleUpdateExpense={handleUpdateExpense}
             setRemainingAmount={setRemainingAmount}
             togglingId={togglingId}
+            handleDeletedExpense={handleDeletedExpense}
+            handleUpdateSpAm={handleUpdateSpAm}
           />
         </div>
 

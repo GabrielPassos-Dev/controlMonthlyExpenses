@@ -23,3 +23,8 @@ const objectId = z
 export const deleteExpenseSchema = z.object({
     id: objectId
 });
+
+export const updatePaidSchema = z.object({
+    id: objectId,
+    paid: z.coerce.boolean()
+});
