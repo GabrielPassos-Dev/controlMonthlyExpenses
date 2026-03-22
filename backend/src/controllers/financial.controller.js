@@ -1,53 +1,51 @@
 import { ExpenseType, PanelStatus } from "@prisma/client";
 import prisma from "../lib/prisma.js";
-import { updateExpenseSchema } from "../schemas/expenseSchema.js";
+import { createExpenseSchema, updateExpenseSchema } from "../schemas/expenseSchema.js";
 
 export async function createExpense(req, res) {
     try {
-        const userId = req.userId
-        const { name, amount, type } = req.body
+        const userId = req.userId;
 
-        if (!name || amount == null || amount <= 0) {
-            return res.status(400).json({ error: "Name is required and amount must be greater than 0" })
+        const parsed = createExpenseSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            return res.status(400).json({
+                error: "VALIDATION_ERROR",
+                message: parsed.error.issues[0].message
+            });
         }
 
-        if (!type) {
-            return res.status(400).json({ error: "Expense type is required" })
-        }
+        const { name, amount, type } = parsed.data;
 
         const panel = await prisma.panel.findFirst({
-            where: { userId, status: PanelStatus.ACTIVE }
+            where: { userId, status: PanelStatus.ACTIVE },
+            select: { id: true }
         })
 
         if (!panel) {
-            return res.status(404).json({ error: "Active panel not found" })
+            return res.status(404).json({
+                error: "ACTIVE_PANEL_NOT_FOUND",
+                message: "Nenhum painel ativo encontrado"
+            });
         }
 
         const expense = await prisma.expense.create({
             data: {
                 panelId: panel.id,
                 name,
-                amount: Number(amount),
+                amount,
                 type
             }
         })
 
-        // if (type === ExpenseType.FIXED) {
-        //     await prisma.panel.update({
-        //         where: { id: panel.id },
-        //         data: {
-        //             remainingAmount: {
-        //                 decrement: Number(amount)
-        //             }
-        //         }
-        //     })
-        // }
-
-        return res.status(201).json(expense)
+        return res.status(201).json({ expense })
 
     } catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: "Internal server error" })
+        console.error("CREATE_EXPENSE_ERROR:", error);
+        return res.status(500).json({
+            error: "INTERNAL_SERVER_ERROR",
+            message: "Erro inesperado. Tente novamente mais tarde."
+        });
     }
 }
 

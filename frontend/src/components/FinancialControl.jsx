@@ -1,21 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { NumericFormat } from "react-number-format";
 import { createExpense } from "../services/financialService.js";
+import { AlertCircle, X } from "lucide-react";
 
 export default function FinancialControl({ addExpense }) {
   const [amount, setAmount] = useState(0);
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingT, setIstLoadingT] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => setErrorMessage(""), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
 
   async function handleCreateExpenses(type) {
     const token = localStorage.getItem("token");
+
     try {
+      if (!name) throw new Error("A descrição é obrigatória");
+      if (!amount) throw new Error("O valor deve ser maior que zero");
+
       const data = await createExpense(token, name, amount, type);
-      addExpense(data);
+      addExpense(data.expense);
+      setName("");
+      setAmount(0);
     } catch (error) {
       console.error("Erro ao criar nova despesa:", error);
-      alert(error.message);
+      setErrorMessage(error.message || "Erro ao conectar com o servidor");
     }
   }
 
@@ -23,12 +39,36 @@ export default function FinancialControl({ addExpense }) {
     type === "FIXED" ? setIsLoading(true) : setIstLoadingT(true);
     await handleCreateExpenses(type);
     type === "FIXED" ? setIsLoading(false) : setIstLoadingT(false);
-    setName("");
-    setAmount(0);
   }
 
   return (
     <div className="bg-slate-900/80 backdrop-blur-sm p-6 md:p-8 rounded-2xl shadow-2xl w-full border border-slate-800 flex flex-col gap-6">
+      {errorMessage &&
+        createPortal(
+          <div className="fixed top-6 right-6 z-[9999] animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="bg-slate-900/95 border border-red-500/50 backdrop-blur-md p-4 rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.2)] flex items-center gap-4 min-w-[300px]">
+              <div className="bg-red-500/20 p-2 rounded-lg border border-red-500/30">
+                <AlertCircle size={20} className="text-red-500" />
+              </div>
+              <div className="flex-1">
+                <p className="text-[10px] uppercase font-black text-red-500 tracking-wider">
+                  Erro de Sistema
+                </p>
+                <p className="text-slate-200 text-sm font-medium">
+                  {errorMessage}
+                </p>
+              </div>
+              <button
+                onClick={() => setErrorMessage("")}
+                className="text-slate-500 hover:text-white transition-colors p-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
+
       <div className="flex flex-col gap-5 items-center">
         <div className="flex flex-col items-center gap-1">
           <p className="text-white text-xl md:text-2xl font-semibold tracking-tight">
@@ -74,7 +114,7 @@ export default function FinancialControl({ addExpense }) {
       <div className="flex flex-col md:flex-row gap-3 w-full">
         <button
           onClick={() => handleSubmit("FIXED")}
-          disabled={isLoading || isLoadingT}
+          //disabled={isLoading || isLoadingT}
           className="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-500 active:scale-[0.98] transition-all shadow-lg shadow-indigo-900/20 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isLoading ? (

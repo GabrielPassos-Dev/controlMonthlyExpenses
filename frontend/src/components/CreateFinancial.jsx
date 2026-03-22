@@ -53,10 +53,8 @@ export default function CreateFinancial() {
 
   if (hasActivePanel === null) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="bg-white p-4 rounded-xl shadow-md w-80 flex flex-col gap-4 text-center">
-          <p className="font-bold text-gray-600">Carregando...</p>
-        </div>
+      <div className="bg-slate-900/60 backdrop-blur-md p-8 rounded-3xl shadow-2xl w-full border border-slate-800/50 flex flex-col gap-6 items-center relative overflow-hidden">
+        <p className="font-bold text-gray-600">Carregando...</p>
       </div>
     );
   }

@@ -1,5 +1,28 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
+export async function createExpense(token, name, amount, type) {
+    const response = await fetch(`${API_URL}/financial`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+            name,
+            amount,
+            type
+        }),
+    });
+
+    const newExpense = await response.json();
+
+    if (!response.ok) {
+        throw new Error(newExpense.message || "Informações inválidas ou erro no servidor");
+    };
+
+    return newExpense;
+}
+
 export async function fetchExpenses(token) {
     const response = await fetch(`${API_URL}/financial`, {
         headers: {
@@ -52,28 +75,6 @@ export async function updateExpense(token, id, expenseData) {
     return data;
 }
 
-export async function createExpense(token, name, amount, type) {
-    const response = await fetch(`${API_URL}/financial`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-            name,
-            amount,
-            type
-        }),
-    });
-
-    const newExpense = await response.json();
-
-    if (!response.ok) {
-        throw new Error(newExpense.error);
-    }
-
-    return newExpense;
-}
 
 export async function updateExpensePaid(id, paid, token) {
     const response = await fetch(
