@@ -50,8 +50,8 @@ export async function deleteExpense(token, id) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.error);
-    }
+        throw new Error(data.message || "Informações inválidas ou erro no servidor");
+    };
 
     return data;
 }

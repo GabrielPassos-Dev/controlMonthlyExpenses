@@ -46,10 +46,13 @@ export default function Financial() {
 
   function removeExpense(id, expense) {
     setExpenses((prev) => prev.filter((exp) => exp.id !== id));
+
+    if (!expense) return;
+
     if (expense.type === "FIXED" && expense.paid === true) {
       setRemainingAmount((prev) => prev + expense.amount);
     } else if (expense.type === "VARIABLE") {
-      setRemainingAmount((prev) => prev + expense.spentAmount);
+      setRemainingAmount((prev) => prev + (expense.spentAmount || 0));
     }
   }
 

@@ -114,7 +114,7 @@ export default function FinancialControl({ addExpense }) {
       <div className="flex flex-col md:flex-row gap-3 w-full">
         <button
           onClick={() => handleSubmit("FIXED")}
-          //disabled={isLoading || isLoadingT}
+          disabled={isLoading || isLoadingT}
           className="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-500 active:scale-[0.98] transition-all shadow-lg shadow-indigo-900/20 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isLoading ? (
