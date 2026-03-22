@@ -15,3 +15,11 @@ export const createExpenseSchema = z.object({
         errorMap: () => ({ message: "Tipo de despesa inválido" })
     })
 });
+
+const objectId = z
+    .string()
+    .regex(/^[a-fA-F0-9]{24}$/);
+
+export const deleteExpenseSchema = z.object({
+    id: objectId
+});

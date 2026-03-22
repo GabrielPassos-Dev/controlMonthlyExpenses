@@ -1,6 +1,7 @@
 import { ExpenseType, PanelStatus } from "@prisma/client";
 import prisma from "../lib/prisma.js";
-import { createExpenseSchema, updateExpenseSchema } from "../schemas/expenseSchema.js";
+import { createExpenseSchema, deleteExpenseSchema, updateExpenseSchema } from "../schemas/expenseSchema.js";
+import delay from "../utils/delay.js";
 
 export async function createExpense(req, res) {
     try {
@@ -75,50 +76,77 @@ export async function getFinancial(req, res) {
 
 export async function deleteExpense(req, res) {
     try {
-        const { id } = req.params
-        const userId = req.userId
+        const parsed = deleteExpenseSchema.safeParse(req.params);
 
-        const expense = await prisma.expense.findUnique({
-            where: { id: id },
-            include: { panel: true }
-        })
-
-        if (!expense) {
-            return res.status(404).json({ error: "Expense not found" })
-        }
-
-        if (expense.panel.userId !== userId) {
-            return res.status(403).json({ error: "Not authorized" })
-        }
-
-        await prisma.expense.delete({
-            where: { id: id }
-        })
-
-        let amountToRestore = 0;
-
-        if (expense.type === ExpenseType.FIXED && expense.paid === true) {
-            amountToRestore = Number(expense.amount);
-        } else if (expense.type === ExpenseType.VARIABLE) {
-            amountToRestore = Number(expense.spentAmount || 0);
-        }
-
-        if (amountToRestore > 0) {
-            await prisma.panel.update({
-                where: { id: expense.panelId },
-                data: {
-                    remainingAmount: {
-                        increment: amountToRestore
-                    }
-                }
+        if (!parsed.success) {
+            return res.status(400).json({
+                error: "VALIDATION_ERROR",
+                message: parsed.error.issues[0].message
             });
         }
 
-        return res.json({ deletedExpense: expense })
+        const { id } = parsed.data;
+        const userId = req.userId
 
+        const result = await prisma.$transaction(async (tx) => {
+
+            const expense = await tx.expense.findFirst({
+                where: {
+                    id,
+                    panel: {
+                        userId
+                    }
+                },
+                include: { panel: true }
+            });
+
+            if (!expense) {
+                throw new Error("EXPENSE_NOT_FOUND");
+            }
+
+            const amountToRestore =
+                expense.type === ExpenseType.FIXED && expense.paid
+                    ? Number(expense.amount)
+                    : expense.type === ExpenseType.VARIABLE
+                        ? Number(expense.spentAmount || 0)
+                        : 0;
+
+            await tx.expense.delete({
+                where: { id }
+            });
+
+            if (amountToRestore > 0) {
+                await tx.panel.update({
+                    where: { id: expense.panelId },
+                    data: {
+                        remainingAmount: {
+                            increment: amountToRestore
+                        }
+                    }
+                });
+            }
+
+            return expense
+        });
+
+        return res.status(200).json({
+            message: "Despesa excluída com sucesso",
+            expense: result
+        });
     } catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: "Internal server error" })
+        if (error.message === "EXPENSE_NOT_FOUND") {
+            return res.status(404).json({
+                error: "EXPENSE_NOT_FOUND",
+                message: "Despesa não encontrada"
+            });
+        }
+
+        console.error("DELETE_EXPENSE_ERROR:", error);
+
+        return res.status(500).json({
+            error: "INTERNAL_SERVER_ERROR",
+            message: "Erro inesperado. Tente novamente mais tarde."
+        });
     }
 }
 
