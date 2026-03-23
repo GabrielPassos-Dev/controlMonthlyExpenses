@@ -9,8 +9,10 @@ import { useNotification } from "../context/NotificationContext.jsx";
 export default function Financial() {
   const { salarySnapshot, remainingAmount } = useFinancial();
   const { notifications, removeNotification } = useNotification();
+  const controller = useFinancialController();
+
   const { isLoading, predictedRemainingAmount, handleToggleStatus } =
-    useFinancialController();
+    controller;
 
   return (
     <main className="bg-slate-950 min-h-screen w-full flex flex-col items-center justify-start md:justify-center p-4 py-10 md:py-20 overflow-x-hidden">
@@ -38,11 +40,11 @@ export default function Financial() {
         </div>
 
         <div className="w-full bg-slate-900/50 p-1 rounded-2xl border border-slate-800 shadow-2xl">
-          <FinancialControl />
+          <FinancialControl controller={controller} />
         </div>
 
         <div className="w-full">
-          <FinancialList />
+          <FinancialList controller={controller} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">

@@ -2,12 +2,11 @@ import { useState } from "react";
 import ExpenseFixed from "./ExpenseFixed";
 import ExpenseVariable from "./ExpenseVariable";
 import { useFinancial } from "../context/FinancialContext";
-import { useFinancialController } from "../hooks/useFinancialController";
 
-export default function FinancialList() {
+export default function FinancialList({ controller }) {
   const [spentValues, setSpentValues] = useState({});
   const { expenses } = useFinancial();
-  const { handleUpdateSpAm } = useFinancialController();
+  const { handleUpdateSpAm } = controller;
 
   const fixedExpenses = expenses.filter(
     (expense) => expense && expense.type === "FIXED",
@@ -49,7 +48,10 @@ export default function FinancialList() {
           </div>
 
           <div className="bg-slate-900/40 rounded-2xl p-1 backdrop-blur-sm border border-slate-800/50">
-            <ExpenseFixed fixedExpenses={fixedExpenses} />
+            <ExpenseFixed
+              fixedExpenses={fixedExpenses}
+              controller={controller}
+            />
           </div>
         </div>
       )}
@@ -70,6 +72,7 @@ export default function FinancialList() {
               spentValues={spentValues}
               setSpentValues={setSpentValues}
               onConfirmSpent={onConfirmSpent}
+              controller={controller}
             />
           </div>
         </div>

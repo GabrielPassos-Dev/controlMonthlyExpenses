@@ -1,40 +1,24 @@
 import { useState } from "react";
 import { NumericFormat } from "react-number-format";
-import { createExpense } from "../services/financialService.js";
-import { useFinancialController } from "../hooks/useFinancialController.js";
-import { useNotification } from "../context/NotificationContext.jsx";
 
-export default function FinancialControl() {
+export default function FinancialControl({ controller }) {
   const [amount, setAmount] = useState(0);
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingT, setIstLoadingT] = useState(false);
 
-  const { addNotification } = useNotification();
-  const { addExpense } = useFinancialController();
-
-  async function handleCreateExpenses(type) {
-    const token = localStorage.getItem("token");
-
-    try {
-      if (!name) throw new Error("A descrição é obrigatória");
-      if (!amount) throw new Error("O valor deve ser maior que zero");
-
-      const data = await createExpense(token, name, amount, type);
-      addExpense(data.expense);
-      setName("");
-      setAmount(0);
-      addNotification(`Despesa "${name}" criada com sucesso`, "success");
-    } catch (error) {
-      console.error("Erro ao criar nova despesa:", error);
-      addNotification(error.message || "Erro de conexão", "error");
-    }
-  }
+  const { handleCreateExpense } = controller;
 
   async function handleSubmit(type) {
     type === "FIXED" ? setIsLoading(true) : setIstLoadingT(true);
-    await handleCreateExpenses(type);
-    type === "FIXED" ? setIsLoading(false) : setIstLoadingT(false);
+
+    try {
+      await handleCreateExpense(name, amount, type);
+      setName("");
+      setAmount(0);
+    } finally {
+      type === "FIXED" ? setIsLoading(false) : setIstLoadingT(false);
+    }
   }
 
   return (

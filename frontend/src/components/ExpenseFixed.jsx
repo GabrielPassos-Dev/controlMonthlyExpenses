@@ -4,12 +4,12 @@ import { Button } from "./ui/Button";
 import { useState } from "react";
 import { LiaTimesSolid } from "react-icons/lia";
 import Modal from "./Modal";
-import { useFinancialController } from "../hooks/useFinancialController";
 
-export default function ExpenseFixed({ fixedExpenses }) {
+export default function ExpenseFixed({ fixedExpenses, controller }) {
   const [editingExpenseId, setEditingExpenseId] = useState(null);
   const [newValue, setNewValue] = useState({});
   const [newName, setNewName] = useState({});
+
   const [deletingId, setDeletingId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
 
@@ -18,7 +18,7 @@ export default function ExpenseFixed({ fixedExpenses }) {
     handleTogglePaid,
     handleDeletedExpense,
     handleUpdateExpense,
-  } = useFinancialController();
+  } = controller;
 
   async function handleUpdate(exp) {
     try {
@@ -37,10 +37,10 @@ export default function ExpenseFixed({ fixedExpenses }) {
     }
   }
 
-  async function handleDelete(exp) {
+  async function handleDelete(id) {
     try {
-      setDeletingId(exp);
-      await handleDeletedExpense(exp);
+      setDeletingId(id);
+      await handleDeletedExpense(id);
     } catch (error) {
       console.error("Erro ao deletar:", error);
       alert(error.message || "Erro ao deletar");

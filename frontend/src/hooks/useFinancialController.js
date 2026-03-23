@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useFinancial } from "../context/FinancialContext";
 import { useState, useEffect } from "react";
 import {
+    createExpense,
     deleteExpense,
     fetchExpenses,
     updateExpense,
@@ -26,10 +27,29 @@ export function useFinancialController() {
     const [isLoading, setIsLoading] = useState(false);
     const [togglingId, setTogglingId] = useState({});
 
-
     const predictedRemainingAmount =
         salarySnapshot -
         expenses.reduce((acc, expense) => acc + (expense.amount || 0), 0);
+
+    async function handleCreateExpense(name, amount, type) {
+        const token = localStorage.getItem("token");
+
+        try {
+            if (!name) throw new Error("A descrição é obrigatória");
+            if (!amount) throw new Error("O valor deve ser maior que zero");
+
+            const data = await createExpense(token, name, amount, type);
+
+            setExpenses((prev) => [data.expense, ...prev]);
+
+            addNotification(`Despesa "${name}" criada com sucesso`, "success");
+
+        } catch (error) {
+            console.error("Erro ao criar despesa:", error);
+            addNotification(error.message || "Erro de conexão", "error");
+            throw error;
+        }
+    }
 
     async function handleFetchExpenses() {
         const token = localStorage.getItem("token");
@@ -48,10 +68,6 @@ export function useFinancialController() {
     useEffect(() => {
         handleFetchExpenses();
     }, []);
-
-    function addExpense(newExpense) {
-        setExpenses((prev) => [newExpense, ...prev]);
-    }
 
     async function handleDeletedExpense(id) {
         try {
@@ -168,7 +184,7 @@ export function useFinancialController() {
         isLoading,
         togglingId,
         predictedRemainingAmount,
-        addExpense,
+        handleCreateExpense,
         handleFetchExpenses,
         handleDeletedExpense,
         handleUpdateExpense,
