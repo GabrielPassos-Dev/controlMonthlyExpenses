@@ -61,7 +61,7 @@ export function useFinancialController() {
             setRemainingAmount(data.panel.remainingAmount);
         } catch (error) {
             console.error("Erro ao carregar despesas: ", error);
-            alert(error.message);
+            addNotification(error.message || "Erro de conexão", "error");
         }
     }
 
@@ -113,27 +113,6 @@ export function useFinancialController() {
         }
     }
 
-    async function handleUpdateSpAm(id, value) {
-        const token = localStorage.getItem("token");
-
-        try {
-            const data = await updateSpentAmount(id, value, token);
-
-            setExpenses((prev) =>
-                prev.map((exp) =>
-                    exp.id === id ? { ...exp, spentAmount: data.spentAmount } : exp,
-                ),
-            );
-
-            setRemainingAmount((prev) => prev - value);
-
-            addNotification("Gasto registrado com sucesso!", "success");
-        } catch (error) {
-            console.error("Erro ao atualizar gasto:", error);
-            addNotification(error.message || "Erro ao atualizar gasto", "error");
-        }
-    }
-
     async function handleToggleStatus() {
         const token = localStorage.getItem("token");
         try {
@@ -179,6 +158,28 @@ export function useFinancialController() {
             });
         }
     }
+
+    async function handleUpdateSpAm(id, value) {
+        const token = localStorage.getItem("token");
+
+        try {
+            const data = await updateSpentAmount(id, value, token);
+
+            setExpenses((prev) =>
+                prev.map((exp) =>
+                    exp.id === id ? { ...exp, spentAmount: data.spentAmount } : exp,
+                ),
+            );
+
+            setRemainingAmount((prev) => prev - value);
+
+            addNotification("Gasto registrado com sucesso!", "success");
+        } catch (error) {
+            console.error("Erro ao atualizar gasto:", error);
+            addNotification(error.message || "Erro ao atualizar gasto", "error");
+        }
+    }
+
 
     return {
         isLoading,

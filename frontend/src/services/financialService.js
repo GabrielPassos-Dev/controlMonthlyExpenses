@@ -33,7 +33,7 @@ export async function fetchExpenses(token) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.error);
+        throw new Error(data.message);
     }
 
     return data;
@@ -110,10 +110,10 @@ export async function updateSpentAmount(id, spentAmount, token) {
         }
     );
 
-    const data = response.json();
+    const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.error);
+        throw new Error(data.message);
     }
 
     return data;

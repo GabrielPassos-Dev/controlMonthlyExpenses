@@ -1,6 +1,6 @@
 import { ExpenseType, PanelStatus } from "@prisma/client";
 import prisma from "../lib/prisma.js";
-import { createExpenseSchema, deleteExpenseSchema, updateExpenseSchema, updatePaidSchema } from "../schemas/expenseSchema.js";
+import { createExpenseSchema, deleteExpenseSchema, updateExpenseSchema, updatePaidSchema, updateSpentAmountSchema } from "../schemas/expenseSchema.js";
 import delay from "../utils/delay.js";
 
 export async function createExpense(req, res) {
@@ -59,10 +59,18 @@ export async function getFinancial(req, res) {
 
         const panel = await prisma.panel.findFirst({
             where: { userId, status: PanelStatus.ACTIVE },
+            select: {
+                id: true,
+                salarySnapshot: true,
+                remainingAmount: true,
+            }
         });
 
         if (!panel) {
-            return res.status(404).json({ error: "Active panel not found" });
+            return res.status(404).json({
+                error: "ACTIVE_PANEL_NOT_FOUND",
+                message: "Nenhum painel ativo encontrado"
+            })
         }
 
         const expenses = await prisma.expense.findMany({
@@ -72,8 +80,11 @@ export async function getFinancial(req, res) {
 
         res.json({ expenses, panel });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Internal server error" });
+        console.error("PANEL_ERROR:", error);
+        return res.status(500).json({
+            error: "INTERNAL_SERVER_ERROR",
+            message: "Erro inesperado. Tente novamente mais tarde."
+        });
     }
 }
 
@@ -264,7 +275,6 @@ export async function updateExpensePaid(req, res) {
     }
 
     const { id, paid } = parsed.data;
-
     const userId = req.userId
 
     try {
@@ -354,9 +364,17 @@ export async function updateExpensePaid(req, res) {
 }
 
 export async function updateSpentAmount(req, res) {
+    const parsed = updateSpentAmountSchema.safeParse({ ...req.params, ...req.body })
+
+    if (!parsed.success) {
+        return res.status(400).json({
+            error: "VALIDATION_ERROR",
+            message: parsed.error.issues[0].message
+        });
+    }
+
+    const { id, spentAmount } = parsed.data;
     const userId = req.userId
-    const { id } = req.params;
-    const { spentAmount } = req.body;
 
     try {
         const panel = await prisma.panel.findFirst({
@@ -364,47 +382,55 @@ export async function updateSpentAmount(req, res) {
         })
 
         if (!panel) {
-            return res.status(404).json({ error: "Active panel not found" })
+            return res.status(404).json({
+                error: "ACTIVE_PANEL_NOT_FOUND",
+                message: "Nenhum painel ativo encontrado"
+            })
         }
 
-        if (!spentAmount || spentAmount === 0) {
-            return res.status(404).json({ error: "Expense not found" })
-        }
-
-        const expense = await prisma.expense.findUnique({
-            where: { id: id },
+        const expense = prisma.expense.findFirst({
+            where: { id, userId },
         });
 
         if (!expense) {
-            return res.status(404).json({ error: "Expense not found" })
+            return res.status(404).json({
+                error: "EXPENSE_NOT_FOUND",
+                message: "Despesa não encontrada",
+            })
         }
 
         if (expense.type === ExpenseType.FIXED) {
-            return res.status(404).json({ error: "Apenas despesas variaveis podem ser alteradas" })
+            return res.status(400).json({ error: "INVALID_EXPENSE_TYPE", message: "Tipo de despesa inválido" })
         }
 
-        const updatedExpense = await prisma.expense.update({
-            where: { id: id },
-            data: {
+        const result = await prisma.$transaction(async (tx) => {
+            const updatedExpense = await tx.expense.update({
+                where: { id: id },
+                data: {
 
-                spentAmount: {
-                    increment: spentAmount
-                }
-            }
-        });
+                    spentAmount: {
+                        increment: Number(spentAmount)
+                    }
+                },
+            });
 
-        await prisma.panel.update({
-            where: { id: panel.id },
-            data: {
-                remainingAmount: {
-                    decrement: Number(spentAmount)
+            await tx.panel.update({
+                where: { id: panel.id },
+                data: {
+                    remainingAmount: {
+                        decrement: Number(spentAmount)
+                    }
                 }
-            }
+            })
+            return updatedExpense.spentAmount
         })
 
-        return res.status(200).json(updatedExpense);
+        return res.status(200).json({ spentAmount: result });
     } catch (error) {
         console.error(error)
-        return res.status(500).json({ error: "Internal server error" })
+        return res.status(500).json({
+            error: "INTERNAL_SERVER_ERROR",
+            message: "Erro inesperado. Tente novamente mais tarde."
+        });
     }
 }
