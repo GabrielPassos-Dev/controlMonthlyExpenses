@@ -1,7 +1,6 @@
 import { ExpenseType, PanelStatus } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 import { createExpenseSchema, deleteExpenseSchema, updateExpenseSchema, updatePaidSchema, updateSpentAmountSchema } from "../schemas/expenseSchema.js";
-import delay from "../utils/delay.js";
 
 export async function createExpense(req, res) {
     try {
@@ -171,7 +170,7 @@ export async function updateExpense(req, res) {
         if (!parsed.success) {
             return res.status(400).json({
                 error: "Invalid data",
-                details: parsed.error.errors
+                details: parsed.error.issues[0].message
             });
         }
 
@@ -376,6 +375,13 @@ export async function updateSpentAmount(req, res) {
     const { id, spentAmount } = parsed.data;
     const userId = req.userId
 
+    if (spentAmount <= 0) {
+        return res.status(400).json({
+            error: "INVALID_AMOUNT",
+            message: "Valor deve ser maior que zero"
+        });
+    }
+
     try {
         const panel = await prisma.panel.findFirst({
             where: { userId, status: PanelStatus.ACTIVE }
@@ -388,8 +394,8 @@ export async function updateSpentAmount(req, res) {
             })
         }
 
-        const expense = prisma.expense.findFirst({
-            where: { id, userId },
+        const expense = await prisma.expense.findFirst({
+            where: { id, panel: { userId } },
         });
 
         if (!expense) {
@@ -400,7 +406,10 @@ export async function updateSpentAmount(req, res) {
         }
 
         if (expense.type === ExpenseType.FIXED) {
-            return res.status(400).json({ error: "INVALID_EXPENSE_TYPE", message: "Tipo de despesa inválido" })
+            return res.status(400).json({
+                error: "INVALID_EXPENSE_TYPE",
+                message: "Tipo de despesa inválido"
+            })
         }
 
         const result = await prisma.$transaction(async (tx) => {
