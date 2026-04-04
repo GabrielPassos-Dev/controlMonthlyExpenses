@@ -12,9 +12,19 @@ A aplicação permite que o usuário gerencie seu dinheiro com base no salário 
 
 ---
 
+## 🧪 Casos de uso
+
+- Usuário quer saber quanto pode gastar por dia
+- Usuário deseja controlar gastos fixos (aluguel, contas)
+- Usuário precisa acompanhar gastos variáveis (alimentação, lazer)
+- Usuário quer evitar saldo negativo
+
+---
+
 ## ✨ Funcionalidades
 
 - 🔐 Cadastro e login com validação de dados
+- 🔑 Autenticação com JWT (JSON Web Token)
 - 💰 Definição de salário base
 - 📊 Criação de painel financeiro mensal
 - 📅 Restrição de apenas 1 painel por mês
@@ -61,6 +71,10 @@ A aplicação permite que o usuário gerencie seu dinheiro com base no salário 
 
 - MongoDB
 
+### 🔐 Autenticação
+
+- JWT (JSON Web Token)
+
 ### ✅ Validação
 
 - Zod
@@ -76,3 +90,56 @@ O projeto foi estruturado seguindo boas práticas de separação de responsabili
 - **Hooks** → lógica reutilizável no front-end
 - **Context API** → gerenciamento de estado global
 - **Middlewares** → autenticação e validações
+
+---
+
+## ⚠️ Desafios enfrentados
+
+- Garantir consistência do saldo ao atualizar despesas
+- Evitar duplicação de ações (ex: marcar como pago várias vezes)
+- Sincronizar estado entre front-end e back-end
+- Implementar regras de negócio sem quebrar o fluxo do usuário
+
+---
+
+## 📦 Como rodar o projeto
+
+### 🔧 Pré-requisitos
+
+- Node.js (v18+)
+- npm ou yarn
+- MongoDB (local ou Atlas)
+
+---
+
+### 📁 Clonar o repositório
+
+```bash
+git clone https://github.com/GabrielPassos-Dev/controlMonthlyExpenses.git
+cd controlMonthlyExpenses
+
+⚙️ Back-end
+cd backend
+npm install
+
+Crie um arquivo .env:
+
+DATABASE_URL="sua_string_do_mongodb"
+JWT_SECRET="sua_chave_secreta"
+npx prisma generate
+npm run dev
+
+Back-end rodando em:
+http://localhost:3000
+
+💻 Front-end
+
+Abra outro terminal:
+
+cd frontend
+npm install
+npm run dev
+
+Front-end rodando em:
+http://localhost:5173
+```
