@@ -1,14 +1,26 @@
 import { PanelStatus } from "@prisma/client";
 import prisma from "../lib/prisma.js";
+import { createPanelSchema } from "../schemas/panelSchema.js";
 
 export async function createPanel(req, res) {
+    const parsed = createPanelSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+        return res.status(400).json({
+            error: "VALIDATION_ERROR",
+            message: parsed.error.issues[0].message
+        });
+    }
+
+    const { month, year } = parsed.data
+    const userId = req.userId
+
     try {
-        const userId = req.userId
-
-        const { month, year } = req.body
-
         if (!month || month < 1 || month > 12 || !year) {
-            return res.status(400).json({ error: "month and year are required" })
+            return res.status(400).json({
+                error: "YEAR_OR_MONTH_NOT_FOUND",
+                message: "Mês e ano são requiridos"
+            })
         }
 
         const user = await prisma.user.findUnique({
@@ -16,7 +28,10 @@ export async function createPanel(req, res) {
         })
 
         if (!user) {
-            return res.status(404).json({ error: "User not found" })
+            return res.status(404).json({
+                error: "USER_NOT_FOUND",
+                message: "Usuario não encontrado"
+            })
         }
 
         const existingPanel = await prisma.panel.findFirst({
@@ -28,7 +43,10 @@ export async function createPanel(req, res) {
         })
 
         if (existingPanel) {
-            return res.status(400).json({ error: `Já existe um painel para ${month}/${year}` })
+            return res.status(400).json({
+                error: "PANEL_EXISTING",
+                message: `Já existe um painel para ${month}/${year}`
+            })
         }
 
         const panel = await prisma.panel.create({

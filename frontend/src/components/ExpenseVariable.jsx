@@ -21,6 +21,7 @@ export default function ExpenseVariable({
 
   const [deletingId, setDeletingId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  const [editingSpentAmountId, setEditingSpentAmountId] = useState(null);
 
   const { handleDeletedExpense, handleUpdateExpense } = controller;
 
@@ -51,6 +52,18 @@ export default function ExpenseVariable({
       alert(error.message || "Erro ao deletar");
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function handleUpdateSpentAmount(id) {
+    try {
+      setEditingSpentAmountId(id);
+      await onConfirmSpent(id);
+    } catch (error) {
+      console.error("Erro ao atualizar:", error);
+      alert(error.message || "Erro ao atualizar");
+    } finally {
+      setEditingSpentAmountId(null);
     }
   }
 
@@ -127,35 +140,45 @@ export default function ExpenseVariable({
             </div>
 
             <div className="p-3 bg-slate-900/60 flex flex-col sm:flex-row gap-3 items-center justify-between">
-              <div className="relative w-full sm:w-56">
-                <NumericFormat
-                  className="w-full h-10 pl-3 pr-10 bg-slate-950 border border-slate-700 rounded-xl text-amber-400 font-mono text-sm focus:ring-2 focus:ring-amber-500/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
-                  value={spentValues[expense.id] || ""}
-                  thousandSeparator="."
-                  decimalSeparator=","
-                  prefix="R$ "
-                  decimalScale={2}
-                  fixedDecimalScale
-                  allowNegative={false}
-                  placeholder="Registrar novo gasto"
-                  onValueChange={(v) =>
-                    setSpentValues((prev) => ({
-                      ...prev,
-                      [expense.id]: v.floatValue ?? 0,
-                    }))
-                  }
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && onConfirmSpent(expense.id)
-                  }
-                />
-                <button
-                  onClick={() => onConfirmSpent(expense.id)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-400 transition-colors p-1"
-                  title="Confirmar gasto"
-                >
-                  <FaCheck size={14} />
-                </button>
-              </div>
+              {editingSpentAmountId === expense.id ? (
+                <span className="flex flex-row gap-2 justify-center items-center">
+                  <p className="text-[15px] uppercase font-bold text-slate-500 tracking-wider">
+                    Registrando
+                  </p>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                </span>
+              ) : (
+                <div className="relative w-full sm:w-56">
+                  <NumericFormat
+                    className="w-full h-10 pl-3 pr-10 bg-slate-950 border border-slate-700 rounded-xl text-amber-400 font-mono text-sm focus:ring-2 focus:ring-amber-500/50 outline-none transition-all placeholder:text-slate-600 shadow-inner"
+                    value={spentValues[expense.id] || ""}
+                    thousandSeparator="."
+                    decimalSeparator=","
+                    prefix="R$ "
+                    decimalScale={2}
+                    fixedDecimalScale
+                    allowNegative={false}
+                    placeholder="Registrar novo gasto"
+                    disabled={editingSpentAmountId === expense.id}
+                    onValueChange={(v) =>
+                      setSpentValues((prev) => ({
+                        ...prev,
+                        [expense.id]: v.floatValue ?? 0,
+                      }))
+                    }
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && handleUpdateSpentAmount(expense.id)
+                    }
+                  />
+                  <button
+                    onClick={() => handleUpdateSpentAmount(expense.id)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 hover:text-amber-400 transition-colors p-1"
+                    title="Confirmar gasto"
+                  >
+                    <FaCheck size={14} />
+                  </button>
+                </div>
+              )}
 
               <div className="flex gap-2 w-full sm:w-auto justify-end">
                 <Button

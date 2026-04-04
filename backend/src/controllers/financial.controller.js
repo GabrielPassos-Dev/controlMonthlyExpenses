@@ -1,7 +1,7 @@
 import { ExpenseType, PanelStatus } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 import { createExpenseSchema, deleteExpenseSchema, updateExpenseSchema, updatePaidSchema, updateSpentAmountSchema } from "../schemas/expenseSchema.js";
-
+// import delay from "../utils/delay.js"
 export async function createExpense(req, res) {
     try {
         const userId = req.userId;
@@ -210,29 +210,13 @@ export async function updateExpense(req, res) {
         if (amount !== undefined) data.amount = amount;
         if (spentAmount !== undefined) data.spentAmount = spentAmount;
 
-        if (expense.type === ExpenseType.FIXED) {
-            const difference = amount !== undefined ? expense.amount - amount : 0;
+        const difference = spentAmount !== undefined ? expense.spentAmount - spentAmount : 0;
 
-            if (difference !== 0) {
-                await prisma.panel.update({
-                    where: { id: expense.panelId },
-                    data: { remainingAmount: { increment: difference } }
-                });
-            }
-        } else if (expense.type === ExpenseType.VARIABLE) {
-            const difference = spentAmount !== undefined ? expense.spentAmount - spentAmount : 0;
-
-            if (difference !== 0) {
-                await prisma.panel.update({
-                    where: { id: expense.panelId },
-                    data: { remainingAmount: { increment: difference } }
-                });
-            }
-        } else {
-            return res.status(404).json({
-                error: "EXPENSE_INVALID",
-                message: "Por favor escolha entre despesa Fixo ou Variavel"
-            })
+        if (difference !== 0) {
+            await prisma.panel.update({
+                where: { id: expense.panelId },
+                data: { remainingAmount: { increment: difference } }
+            });
         }
 
         const newExpense = await prisma.expense.update({
@@ -363,7 +347,8 @@ export async function updateExpensePaid(req, res) {
 }
 
 export async function updateSpentAmount(req, res) {
-    const parsed = updateSpentAmountSchema.safeParse({ ...req.params, ...req.body })
+    // await delay(4000)
+    const parsed = updateSpentAmountSchema.safeParse({ ...req.params, ...req.body });
 
     if (!parsed.success) {
         return res.status(400).json({
